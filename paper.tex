@@ -1,6 +1,9 @@
 \documentclass{acm_proc_article-sp}
+\makeatletter
+\let\@copyrightspace\relax
+\makeatother
 
-\newcommand{\thetitle}{Name That Tune: Predicting Flow Behavior}
+\newcommand{\thetitle}{Predicting Network Flow Behavior with Linear Algebra}
 
 \input{packages}
 \input{definitions}
@@ -12,6 +15,8 @@ Department of Computer Science \\
 University of California, Santa Barbara \vspace{0.35em}\\
 \textit{\{sgk,gilbert,ebelding\}@cs.ucsb.edu}
 }
+
+\bibliographystyle{plain}
 
 \newcommand{\figurename}{Figure}
 \newcommand{\tablename}{Table}
@@ -34,6 +39,7 @@ However, they also provide evidence that the hypothesized model gives a correct 
 \section{Introduction}\sec{introduction}
 
 \newfootnote{\flownote}{We use the common definition of a \textit{flow} as a sequence of packets sharing the same  ``5-tuple'': IP protocol type, source and destination nodes, and TCP/UDP port numbers.}
+\newfootnote{\directsumnote}{Direct sum is the vector space analogue of cross product.}
 
 This paper is the first in a three-part series employing a numerical linear algebra techniques to understand and analyze network traffic patterns at a detailed level of individual flows and packets.\flownote
 All three papers employ the same analytical approach but investigate different fundamental applications of traffic modeling:
@@ -52,7 +58,7 @@ For example, the vector representing the distribution of packet sizes of a flow 
   \text{size} = \frac{1}{6}\parens{4\vec{e}_{40} + 2\vec{e}_{145}}.
 \end{align}
 % The dimension of this representation is 1500 because that is typically the maximum transfer unit (\caps{MTU}) of local networks.
-Different aspects of flow behavior can be represented in this way, and these representations can be combined by taking the direct sum of their representation vectors.
+Different aspects of flow behavior can be represented in this way, and these representations can be combined by taking the direct sum of their representation vectors.\directsumnote
 
 The behavior of any set of flows, such as a traffic trace, can be represented as a matrix of feature-frequency vectors.
 We use the convection that features values correspond to matrix columns while flows correspond to matrix rows.
@@ -102,8 +108,6 @@ We conclude with final remarks in \Section{conclusions}.
 \end{center}
 \vspace{-2em}
 \end{figure*}
-
-\newfootnote{\directsumnote}{The direct sum is the vector space analogue of a cross product of sets.}
 
 Before we can present our motivating observation about the linear structure of network traffic, we must explain how flow behaviors are represented as feature-frequency vectors. The low-level details of this representation are given in \Section{representation}.
 For now, what the reader must know is that each feature is represented by a vector where each dimension corresponds to a possible value of the feature;
@@ -658,6 +662,7 @@ If such applications based on this flow behavior model or other similar ones pro
 \vfill
 \pagebreak
 
-\bibliography{IEEE,references}
+\small
+\bibliography{references}
 
 \end{document}

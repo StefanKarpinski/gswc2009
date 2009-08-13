@@ -1,5 +1,5 @@
 #!/bin/sh
 upload_host=${upload_host:-linus}
 perl -i -ple 's/^nan/0.0/' paper.pdf
-rsync -v paper.pdf $upload_host:public_html/papers/infocom.pdf
-rsync -v paper.tex $upload_host:public_html/papers/infocom.tex
+rsync -v paper.pdf $upload_host:public_html/papers/gswc.pdf
+rsync -v paper.tex $upload_host:public_html/papers/gswc.tex

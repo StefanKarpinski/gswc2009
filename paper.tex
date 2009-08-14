@@ -59,6 +59,7 @@ Different aspects of flow behavior can be represented in this way, and these rep
   \text{port} \directsum
   \text{pkts}.
 \end{align}
+% The features represented here are packet size distribution, inter-packet interval distribution, \caps{IP} protocol type, source and destination port numbers, and distribution of packet counts.
 The behavior of a feature across a collection of flows can be expressed as a matrix where each row represents a flow:
 \begin{align}\eqn{Size}
   \text{Size} = \begin{bmatrix}
@@ -100,19 +101,12 @@ The scatter plots show the first two most significant dimensions of the behavior
 \vspace{-2em}
 \end{figure}
 
-
 % We hypothesize that the reason for the linear structure is that the distribution of each flows behavior is a finite mixture of a small set of ``basic behaviors.''
 % Moreover, the mixing of basic behaviors is itself structured.
 The linear structure of network traffic allows us to perform a drastic model reduction on trace traffic patterns while preserving the essential characteristics of the original trace.
 Furthermore, when observable characteristics of flows are separated from features to be predicted, this model reduction is similar to a classical linear regression:
 it allows us to use least squares optimization on observed features to predict individual flow behavior.
-We use this technique to predict the following characteristics of flows from a few initial packets:
-\begin{enumerate}
-  \item the distribution of packets sizes,
-  \item the distribution of inter-packet intervals,
-  \item the number of packets that will be in the flow.
-\end{enumerate}
-From these properties we can indirectly predict many other properties, including the total duration and data volume.
+We use this technique to predict the following characteristics of flows from a few initial packets.
 
 This prediction technique is clearly of immediate practical use:
 applications range from network management to routing to quality of service.

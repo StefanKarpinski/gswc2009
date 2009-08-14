@@ -144,9 +144,55 @@ If the recovered model can make accurate predictions, this provides evidence tha
 % We use the recovered model to predict behaviors of a separate set of flows from the same trace, using only knowledge of five initial packets from each flow.
 % Finally, we must evaluate the quality of these predictions by comparing them against the actual behavior of those flows.
 
+From the sampled training data we recover estimates, $W^*$ and $P^*$, of the factors in \Equation{mixture-model-matrix}.
+To automatically detect the low-rank linear structures, we use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into a union of subspaces using lossy data coding and compression~\cite{Ma07}.
+Then we determine the hull points of each linear structure, using nonnegative matrix factorization (\caps{NMF})~\cite{Lee01,Kim08:anls}:
+if $Q_c$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_c$ and $P_c$, such that $Q_c \approx W_c P_c$.
+Our reconstructed $P^*$ is a vertical concatenation of these $P_c$ matrices, while $W^*$ is a row-permutation of the direct sum of $W_c$ matrices.
+We use Kim and Park's alternating non-negative least squares algorithm~\cite{Kim08:anls} for rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm~\cite{Lee01}.
+Good prediction performance requires special initialization of the \caps{NMF} algorithms, using techniques that we lack room to detail here.
+
+To predict flow behavior, we separate flow features into those observed and those to be predicted:
+\begin{align}
+  X_\text{o} &= \bracket{ ~
+    \text{Size}_\text{init} ~
+    \text{Ival}_\text{init} ~
+    \text{Type} ~
+    \text{Port} ~
+  } \\
+  X_\text{p} &= \bracket{ ~
+    \text{Size}_\text{rest} ~
+    \text{Ival}_\text{rest} ~
+    \text{Pkts} ~
+  }
+\end{align}
+$\text{Size}_\text{init}$ is the packet size matrix for the first five packets, while $\text{Size}_\text{rest}$ is the matrix for the remainder of the packets, and similarly for inter-packet intervals.
+From and observation matrix, $X_\text{o}$, and the recovered model parameters, $P^*$, we can make predictions about $X_\text{p}$.
+Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix  with separated observable and predictable features.
+From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
+\begin{align}
+  W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
+\end{align}
+Since the weights must be nonnegative, a nonnegative least squares algorithm is used~\cite{Benthem04}.
+From here, we can estimate the underlying feature distributions for the flows:
+\begin{align}
+  Q^* = W^*P.
+\end{align}
+The ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
+To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=3.3in]{pred_stats}
+\caption{Accuracy rates of various methods of predicting flow behavior from five initial packets across six data sets.}
+\fig{success-rates}
+\end{center}
+\vspace{-1em}
+\end{figure}
+
 \begin{table}
 \begin{center}
-\small
+\scriptsize
 \begin{tabular}{|c|c|c|c|}
 
 \hline
@@ -202,337 +248,288 @@ UCSD engineering \\
 For our experiments, we use randomly sampled traffic from six network traces.
 The traces are freely available from the \caps{CRAWDAD} trace repository~\cite{Yeo06}.
 Details of the traces are shown in \Table{traces}.
-These data sets represent a broad cross-section of traffic patterns over time and a reasonable variety of network types.
+% These data sets represent a broad cross-section of traffic patterns over time and a reasonable variety of network types.
 % Unfortunately, we could not find any freely available residential or corporate network traces that were usable for our analysis.
 We randomly sampled 5000 flows from each trace for training and another 5000 flows for testing.
-Since the initial five packets are used for prediction, we consider only flows with at least five packets.
-
-From the sampled training data we recover estimates, $W^*$ and $P^*$, of the factors in \Equation{mixture-model-matrix}.
-To automatically detect the low-rank linear structures, we use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into a union of subspaces using lossy data coding and compression~\cite{Ma07}.
-Then we determine the hull points of each linear structure, using nonnegative matrix factorization (\caps{NMF})~\cite{Lee01}:
-if $Q_c$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_c$ and $P_c$, such that $Q_c \approx W_c P_c$.
-Our reconstructed $P^*$ is a vertical concatenation of these $P_c$ matrices, while $W^*$ is a row-permutation of the direct sum of $W_c$ matrices.
-We use Kim and Park's alternating non-negative least squares algorithm~\cite{Kim08:anls} for rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm~\cite{Lee01}.
-Good prediction performance requires special initialization of the \caps{NMF} algorithms, using techniques that we lack room to detail here.
-
-To predict flow behavior, we separate flow features into those observed and those to be predicted:
-\begin{align}
-  X_\text{o} &= \bracket{ ~
-    \text{Size}_\text{init} ~
-    \text{Ival}_\text{init} ~
-    \text{Type} ~
-    \text{Port} ~
-  } \\
-  X_\text{p} &= \bracket{ ~
-    \text{Size}_\text{rest} ~
-    \text{Ival}_\text{rest} ~
-    \text{Pkts} ~
-  }
-\end{align}
-$\text{Size}_\text{init}$ is the packet size matrix for the first five packets, while $\text{Size}_\text{rest}$ is the matrix for the remainder of the packets, and similarly for inter-packet intervals.
-From and observation matrix, $X_\text{o}$, and the recovered model parameters, $P^*$, we can make predictions about $X_\text{p}$.
-Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix  with separated observable and predictable features.
-From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
-\begin{align}
-  W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
-\end{align}
-Since the weights must be nonnegative, a nonnegative least squares algorithm is used~\cite{Benthem04,Kim08:block-pivot}.
-From here, we can estimate the underlying feature distributions for the flows:
-\begin{align}
-  Q^* = W^*P.
-\end{align}
-The ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
-To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
-
-\begin{figure}[t]
-\vspace{-0.02in}
-\begin{center}
-\includegraphics[width=3.3in]{pred_stats}
-\caption{Accuracy rates of various methods of predicting packet size and inter-packet interval behaviors of flows from five packets.}
-\fig{success-rates}
-\end{center}
-\vspace{-1em}
-\end{figure}
+% Since the initial five packets are used for prediction, we consider only flows with at least five packets.
 
 \vfill
 \break
-\vfill
-\break
 
-\subsubsection{Subspace Segmentation}\sec{subspace-segmentation}
-
-Once the data have been expressed in matrix form, the next step is try to detect the linear structures seen in \Figure{svd}.
-% Recall that these correspond to the point classes in our hypothesized model.
-We use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into a union of subspaces using lossy data coding and compression~\cite{Ma07}.
-The essential idea of this algorithm is to compute the number of bits needed to encode the data under various groupings.
-The grouping which yields the best compression is the desired segmentation.
-This algorithm has several desirable qualities.
-Two are essential for us:
-1) unlike most clustering algorithms, it finds subspaces, not regions;
-2) it is highly robust to outliers and noisy data.
-The algorithm has one parameter:
-the maximum allowable distortion of the data.
-We follow the authors when applying the algorithm to \caps{SVD} data and use $\varepsilon^2 = 1$.
-The result of this stage is a segmentation of the $q_i$ into classes associated with structures, precisely as our hypothesized model requires.
-
-\subsubsection{Subspace Factorization}\sec{subspace-factorization}
-
-\newfootnote{\svdnnnote}{The first singular vector of a nonnegative matrix is guaranteed to be nonnegative, but the other singular vectors will have mixed sign.}
-
-The next step towards recovering the structure of the hypothesized model is to determine the hull points of each linear structure.
-In the previous step, we have determined, as well as we can, which $q_i$ belong to the same structures.
-Now we must determine the vertices, $p_j$, which generate these structures.
-The first question is how many ``real'' dimensions each structure has.
-Various methods exist for trying to determine this.
-In \Figure{svd} it appears that most of our structures are nearly two-dimensional.
-Despite attempting many more sophisticated techniques for automatically determining structure dimensionality, we have found that best prediction quality comes from simply assuming that each structure is two-dimensional.
-We can use \caps{SVD} to determine the most prominent linear components of each structure, but \caps{SVD} will give us vectors of mixed sign.\svdnnnote
-Since negative probability distributions are meaningless, these do not give us a plausible recovery of our model.
-We must turn to other techniques to recover possible vectors for the $p_j$.
-
-In essence, what we have is a nonnegative matrix factorization (\caps{NMF}) problem:
-if $Q_*$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_*$ and $P_*$, such that $Q_* \approx W_* P_*$.
-% We have the additional constraint that $W_*$ and $P_*$ have unit-sum rows, but that can easily be guaranteed since 
-Large $P$ is a vertical concatenation of these $P_*$ matrices, while $W$ is row-permutation of the direct sum of $W_*$ matrices.
-Many \caps{NMF} algorithms have been proposed since Lee and Seung published the first~\cite{Lee01}.
-We use Kim and Park's alternating non-negative least squares (\caps{ANLS}) algorithm~\cite{Kim08:anls} first for its rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm.
-
-\newfootnote{\cddnote}{To do this, we use Avis and Fukuda's vertex enumeration algorithm as implemented in Fukuda's excellent CDD library~\cite{Avis92}.}
-
-We find that using the standard random \caps{NMF} initialization does not yield factorizations of sufficient quality, so we have developed the following initialization procedure.
-Reduce the data to the number structural dimensions sought using \caps{SVD}.
-Cluster the reduced data points into one cluster per structural dimension using $k$-means clustering.
-Use cluster membership from this step to combine the original data, leaving only one composite row per desired structural dimension.
-These rows provide a ``denoised'' set of nonnegative spanning vectors that estimate the true low-dimensional subspace from which the data were sampled.
-Finally, we find the intersection of this subspace with the standard simplex in $\R^n$.\cddnote
-This step gives us a set of nonnegative vertices geometrically guaranteed to contain all of the estimated low-dimensional subspace.
-These vectors are used to initialize the \caps{NMF} algorithms, yielding extremely good factorization for small structures.
-
-\subsection{Flow Behavior Prediction}\sec{flow-behavior-prediction}
-
-To predict flow behavior, we must separate flow features into those that are observed and those that must be predicted.
-For example, if we want to predict total flow behavior from some number of initial packets, then we would have the following matrix of observables:
-\begin{align}
-  X_\text{o} = \bracket{ ~
-    \text{Size}_\text{init} ~
-    \text{Ival}_\text{init} ~
-    \text{Type} ~
-    \text{Port} ~
-  }
-\end{align}
-Observing five initial packets, $\text{Size}_\text{init}$ is the packet size feature-frequency vector for only those five packets. Similarly, $\text{Ival}_\text{init}$ is the feature-frequency vector for the first four inter-packet intervals.
-The matrix of ``predictables'' would be:
-\begin{align}
-  X_\text{p} = \bracket{ ~
-    \text{Size}_\text{rest} ~
-    \text{Ival}_\text{rest} ~
-    \text{Pkts} ~
-  }
-\end{align}
-The matrices $\text{Size}_\text{rest}$ and $\text{Ival}_\text{rest}$ are the analogous  matrices for the rest of the packets in the flows.
-
-From the observed data, $X_\text{o}$, we find the best fitting weight matrix, and use the weights together with our recovered model parameters to estimate probability distributions of features for each flow, using the hypothesized model.
-This technique is fundamentally similar to fitting a regression line to noisy two-dimensional training data and then using the $x$-coordinates of data points to linearly predict the $y$-coordinates.
-The main differences are the vastly higher number of dimensions and more complex structure we assume for our data.
-
-% We use the packet sizes and inter-packet intervals of the initial packets, together with their \caps{IP} type and port numbers to predict the distribution of packets sizes and inter-packet intervals for the rest of the flow, as well as predicting a distribution of possible of packet counts.
-% In order to do this prediction, subspace factorization must be done with the observable and predictable matrices separated.
-% That is, subspace factorization must be done on the matrix $[X_\text{o}~X_\text{p}]$.
-% However, we perform our subspace segmentation step on the combined data as in \Equation{X}.
-% Why the difference? We have two pragmatic reasons:
-% 1) the segmentation step seems to work better with the unseparated matrix.
-% 2) we want to apply our prediction technique with different numbers of initial packets;
-% the segmentation step is very slow, while the factorization step is relatively fast;
-% this way we can use the same segmentation result for varying numbers of initial packets.
-
-\newfootnote{\separationnote}{%
-We use an unseparated feature matrix for subspace segmentation, but separated observable and predictable features for subspace factorization.
-This is partly because segmentation appears to work better using combined features, but also so that we can reuse the same expensive segmentation computation when performing prediction with different numbers of initial packets.
-}
-
-Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix from ~\Section{model-recovery}, with separated observable and predictable features.\separationnote
-From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
-\begin{align}
-  W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
-\end{align}
-Note that since the weights must be nonnegative, a nonnegative least squares algorithm must be used~\cite{Benthem04,Kim08:block-pivot}.
-From here, we can estimate the underlying feature distributions for the flows:
-\begin{align}
-  Q^* = W^*P.
-\end{align}
-In particular, the ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
-To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
-The next section explores how to preform this evaluation and how our technique performs compared with other possible predictors. 
-
-\section{Results}\sec{results}
-
-% It seems wise at this point to address the nature of prediction for highly nondeterministic phenomena like network traffic.
-Brief reflection shows that one cannot hope to accurately predict the exact behavior of flows:
-flows may exhibit the same initial behavior but subsequently behave quite differently.
-The best we can hope to do is to predict a \emph{distribution} of possible outcomes given the observed initial behavior.
-When compared with a specific outcome, such a prediction cannot be said to be unequivocally right or wrong.
-% How then can we measure the quality of a predicted distribution of outcomes as compared to a single outcome?
-% This subtle and difficult issue is central to our evaluation methodology.
-% In what follows, we have performed prediction from observing only five initial packets from each flow.
-
-% To compare the predicted distributions of packet sizes and inter-packet intervals against the observed distributions, we use the most common ``goodness-of-fit'' test:
-
-To test the quality of a predicted distribution as compared with a sample of values which may or may not come from that distribution, we use the single-sample Kolmogorov-Smirnov (K-S) ``goodness-of-fit'' test~\cite{Feller68}.
-The K-S test compares the cumulative distribution function (\caps{CDF}) of a theoretical distribution with the empirical cumulative distribution function of the sample.
-The test uses the largest absolute difference between the \caps{CDF}s as a statistic to measure how plausible it is that the sample was drawn from the hypothesized distribution.
-The K-S statistic is transformed into a p-value:
-the probability of obtaining a result as extreme as observed, assuming the sample really came from the hypothesized distribution.
-
-\newfootnote{\ksidealnote}{If the K-S test were perfect, the pragmatic ideal baseline would be uniform. The fact that it is not demonstrates the imperfection of the K-S test.}
-
-We evaluate the quality of our packet size and inter-packet interval distribution predictions by examining the distribution of K-S p-values for the predicted distribution versus the observed sample.
-In theory, if the predictions are correct, the p-values should be uniformly distributed on the interval [0,1].
-In practice, however, the K-S test is not perfect, and its p-values are not uniform.
-Instead of comparing predictions to the nonexistent theoretical ideal, we use a more pragmatic ideal as a baseline:
-p-values of samples that are actually drawn from the predicted distributions.
-We measure quality of predictions by how much worse that this ideal the predictions are.\ksidealnote
-
-\Figure{cdf} shows selected p-value \caps{CDF}s for our predicted distributions compared to the ideal baseline.
-For comparison, we also show the results for two simplistic prediction techniques.
-The first alternative, ``mean,'' always predicts the average behavior of the entire training trace.
-This does not perform as badly as one might think it would:
-always guessing the average is not an abysmal failure.
-The second alternative, ``self,'' predicts the behavior that has already been seen.
-% This is the best guess one can make about a flow, without having been trained on any other flows:
-% just guess that it will keep doing what it has already done.
-
-A na\"ive point-measure of the error of these predictions is the rate at which they fail the K-S test at a fixed significance level, such as 1\% or 5\%, as compared to the ideal.
-This is equivalent to measuring the distance above the ideal \caps{CDF} at the 0.01 or 0.05 p-value mark.
-This measure of error is na\"ive because these traditional significance levels are intentionally highly conservative:
-they are chosen so as to incorrectly reject the null only 1\% or 5\% of the time.
-Thus, they only reject the worst possible predictions.
-The mean predictor makes a perfect example:
-by guessing the average behavior it actually makes relatively few really bad predictions but makes far more poor and mediocre predictions than it should, and very few good predictions.
-Our predictor, on the other hand, maintains a fairly steady error rate somewhat above the ideal, and in particular makes as many near-perfect predictions as the ideal.
-
-As a better point-measure of the quality of a predictor, we propose the maximum vertical distance between its p-value \caps{CDF} and the ideal.
-This is equivalent to choosing the worst possible predetermined significance level for each predictor and evaluating it at that level.
-Under this measure, predictors cannot ``hide'' their errors by shifting them around the p-value range.
-The maximum vertical difference from the ideal for each predictor is shown in \Figure{cdf} with vertical bars.
-This is the the overall error rate of the predictor.
-The success rate is the complement of the error rate.
-\Figure{success-rates} shows the success rates of various predictions across the six data sets.
-Our method predicts size and interval behaviors with accuracy between 70\% and 90\% across all data sets, while the other methods remain well below 50\% with few exceptions.
-
-Next we turn to the evaluation of packet counts predictions.
-Here we cannot use the K-S test:
-although we have a predicted distribution of possible packet counts, we have only one value to compare it to---the observed number of packets.
-Instead we use the predicted distributions themselves to produce p-values for observed packet counts.
-We compute how ``extreme'' each observed packet count value is in the predicted distribution of values:
-what fraction of the distribution is as large or larger than the observed value.
-If the predictions are accurate, then these ``p-values'' should be uniformly distributed.
-
-\Figure{packets-accuracy} shows the \caps{CDF} of p-values of observed packet counts versus our predicted distributions.
-While the \caps{CDF}s do not remain perfectly straight along the diagonal, the general tendency is for our predictions to remain fairly accurate.
-There is some tendency for the observations to fall at the high and low ends of the predicted distributions, indicating that our predictions are somewhat too ``narrow.''
-Nevertheless, the general nearness to the diagonal shows that, on the whole, our packet predictions remain fairly accurate.
-
-Accuracy alone is insufficient, however:
-guessing the mean distribution of packet counts yields a perfectly accurate predictor by this criterion.
-What we want, however, is to remain accurate but become more precise in our predictions of packet count distributions.
-We can measure this precision by computing the information-theoretic entropy of each distribution.
-We want our accuracy to remain intact, but the entropy of our predictions to go down as much as possible.
-
-\Figure{packets-entropy} shows the \caps{CDF}s of entropy values for our predictions across all six data sets.
-The entropy of the average behavior of each set is indicated with a vertical line.
-Entropy of predictions must be evaluated as compared with this.
-In some cases, the entropy of our prediction is greater than the entropy of the average behavior.
-In such cases, we can simply use the average behavior as a prediction instead.
-Most of the time, however, we are gaining a great deal of information about what the actual packet count will be:
-entropy is reduced to less than two bits or less about half of the time.
-
-A closely related measure to entropy is the reduction in uncertainty.
-The uncertainty of a prediction is two raised to the power of its entropy:
-the number of possible choices the bits of entropy can encode.
-The reduction in uncertainty is the fraction of the mean behavior's uncertainty that remains when we use our predictor.
-This is the fraction of the original ``number'' of possible values that remain after our prediction as compared to before.
-\Figure{packets-uncertainty} shows that across the six data sets, half of the time we discard between 75\% and 90\% of the original uncertainty.
-
-\section{Discussion \& Related Work}\sec{discussion}\sec{related-work}
-
-The results demonstrate that we can predict the packet size distribution, inter-packet interval distribution, and packet count distribution of flows from only a handful of initial packets of each flow.
-Specifically, we have used five initial packets to predict these distributions with between 70\% and 90\% accuracy across a wide variety of network traces.
-Moreover, about half of the time, we can reduce our uncertainty about the number of packets that flows will have by 80\% or more.
-Immediate applications of this ability to accurately predict individual flow behaviors abound.
-Quality of service (\caps{QoS}) schemes attempting to provide high-quality service guarantees for streaming voice and video wireless through wireless networks could use such predictions to know, almost presciently, how much data flows are likely to transmit and how often.
-Routers could use information about data rates from these predictions to load-balance across multiple possible routes towards their ultimate destinations.
-
-While these potential applications are useful, the real significance of this work lies elsewhere.
-Predicting flow behavior is merely a pleasant side effect of the real breakthrough:
-a detailed statistical model for network-wide flow behaviors.
-The fundamental concept underlying this work is that there are a relatively small collection of ``basic behaviors'' that generate the vast majority of the flow behaviors found in any particular trace.
-These behaviors are associated with distributions of various flow features:
-packet sizes, inter-packet intervals, \caps{IP} protocol, port numbers and packet counts.
-These features are drawn from these distributions to create actual flows.
-We have treated the features as though they are sampled independently, but this is merely a simplification that allows us to estimate model parameters with computational techniques available today.
-The fact that this estimation provides a model which can reasonably well predict the behaviors of flows demonstrates that the concept of modeling flows as a mixture of basic behaviors is viable, even if the details of how we represent flow features remains open to improvement.
-
-Given that the statistical model we have proposed for flow behavior is fairly simple---and finite mixture modeling is a well established field that has been studied since 1894~\cite{McLachlan00}---one may very well ask why this basic linear structure of network traffic has not been discovered before.
-Part of the reason is that traditional approaches to mixture modeling have been applicable to parametric probability distributions.
-The distributions found in network traffic, however, are very distinctly non-parametric.
-They are lumpy, unruly and generally quite ugly.
-This is due largely to the fact that behaviors found in computer networks are not the by-products of smooth, natural phenomena, but rather of man-made artificial systems, following arbitrary, complex and capricious rules.
-
-The numerical techniques needed to tackle non-parametric mixture modeling have only very recently become available.
-In our model recovery procedure, we use a subspace segmentation algorithm published in 2007~\cite{Ma07}, two \caps{NMF} algorithms published in 2001 and 2008, respectively~\cite{Lee01,Kim08:anls}, and a low-rank \caps{NMF} initialization technique published for the first time here.
-All of these techniques are still quite immature:
-New \caps{NMF} algorithms have been regularly proposed since Lee and Seung's seminal paper in 2001.
-Their algorithms are still the most well-known, and often the most reliable despite their various shortcomings~\cite{Langville06}.
-These algorithms will only improve over time, yielding better recovery of model parameters.
-Such improvements will immediately improve the performance of the prediction methods employed in this paper.
-
-We are not the first researchers to apply linear techniques to the behavior of network traffic.
-Lakhina~\emph{et~al.}~\cite{Lakhina04} apply principal component analysis (\caps{PCA})---which is computationally equivalent to \caps{SVD}---to the aggregate packet count traversing between ingress and egress points in Internet transit networks over time.
-Their purpose for this application is to detect network traffic anomalies, but in the process, they introduce the concept of ``eigenflows'':
-the principal components (\emph{c.f.} singular vectors) of aggregate traffic time series.
-De Oliveira~\emph{et~al.}~\cite{DeOliveira06} further the application to \caps{PCA} to ingress-egress aggregate traffic volume, which the literature terms ``origin-destination flows,'' by classifying the principal components into three classes:
-periodic components, peaked components, and noise components.
-The same sorts of analysis have be extended by several other researchers~\cite{Babiarz06,Juva08}.
-While some of the techniques are similar, such as \caps{SVD} and \caps{PCA}, and the terminology seems suggests similarity---all talk about ``flows''---the reality is that this research is a significant departure.
-These earlier approaches analyze and forecast aggregate traffic volume in transit networks, while our research predicts the behaviors of individual flows, in the sense of a series of packets sharing a ``5-tuple,'' rather than the transit network ``origin-destination'' pair sense.
-While understanding aggregate traffic behavior in core networks is certainly useful, we believe that even broader applications exist for the detailed individual flow behavior model we have proposed.
-
-% Part of the reason the model of flow generation as mixtures of a basic set of behaviors is not obvious and has not previously been noted is likely that with convex linear combinations, so many different combinations can be created.
-% Moreover, the analytical tools to extract this structure have only existed for a few years.
+% \subsubsection{Subspace Segmentation}\sec{subspace-segmentation}
+% 
+% Once the data have been expressed in matrix form, the next step is try to detect the linear structures seen in \Figure{svd}.
+% % Recall that these correspond to the point classes in our hypothesized model.
+% We use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into a union of subspaces using lossy data coding and compression~\cite{Ma07}.
+% The essential idea of this algorithm is to compute the number of bits needed to encode the data under various groupings.
+% The grouping which yields the best compression is the desired segmentation.
+% This algorithm has several desirable qualities.
+% Two are essential for us:
+% 1) unlike most clustering algorithms, it finds subspaces, not regions;
+% 2) it is highly robust to outliers and noisy data.
+% The algorithm has one parameter:
+% the maximum allowable distortion of the data.
+% We follow the authors when applying the algorithm to \caps{SVD} data and use $\varepsilon^2 = 1$.
+% The result of this stage is a segmentation of the $q_i$ into classes associated with structures, precisely as our hypothesized model requires.
+% 
+% \subsubsection{Subspace Factorization}\sec{subspace-factorization}
+% 
+% \newfootnote{\svdnnnote}{The first singular vector of a nonnegative matrix is guaranteed to be nonnegative, but the other singular vectors will have mixed sign.}
+% 
+% The next step towards recovering the structure of the hypothesized model is to determine the hull points of each linear structure.
+% In the previous step, we have determined, as well as we can, which $q_i$ belong to the same structures.
+% Now we must determine the vertices, $p_j$, which generate these structures.
+% The first question is how many ``real'' dimensions each structure has.
+% Various methods exist for trying to determine this.
+% In \Figure{svd} it appears that most of our structures are nearly two-dimensional.
+% Despite attempting many more sophisticated techniques for automatically determining structure dimensionality, we have found that best prediction quality comes from simply assuming that each structure is two-dimensional.
+% We can use \caps{SVD} to determine the most prominent linear components of each structure, but \caps{SVD} will give us vectors of mixed sign.\svdnnnote
+% Since negative probability distributions are meaningless, these do not give us a plausible recovery of our model.
+% We must turn to other techniques to recover possible vectors for the $p_j$.
+% 
+% In essence, what we have is a nonnegative matrix factorization (\caps{NMF}) problem:
+% if $Q_*$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_*$ and $P_*$, such that $Q_* \approx W_* P_*$.
+% % We have the additional constraint that $W_*$ and $P_*$ have unit-sum rows, but that can easily be guaranteed since 
+% Large $P$ is a vertical concatenation of these $P_*$ matrices, while $W$ is row-permutation of the direct sum of $W_*$ matrices.
+% Many \caps{NMF} algorithms have been proposed since Lee and Seung published the first~\cite{Lee01}.
+% We use Kim and Park's alternating non-negative least squares (\caps{ANLS}) algorithm~\cite{Kim08:anls} first for its rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm.
+% 
+% \newfootnote{\cddnote}{To do this, we use Avis and Fukuda's vertex enumeration algorithm as implemented in Fukuda's excellent CDD library~\cite{Avis92}.}
+% 
+% We find that using the standard random \caps{NMF} initialization does not yield factorizations of sufficient quality, so we have developed the following initialization procedure.
+% Reduce the data to the number structural dimensions sought using \caps{SVD}.
+% Cluster the reduced data points into one cluster per structural dimension using $k$-means clustering.
+% Use cluster membership from this step to combine the original data, leaving only one composite row per desired structural dimension.
+% These rows provide a ``denoised'' set of nonnegative spanning vectors that estimate the true low-dimensional subspace from which the data were sampled.
+% Finally, we find the intersection of this subspace with the standard simplex in $\R^n$.\cddnote
+% This step gives us a set of nonnegative vertices geometrically guaranteed to contain all of the estimated low-dimensional subspace.
+% These vectors are used to initialize the \caps{NMF} algorithms, yielding extremely good factorization for small structures.
+% 
+% \subsection{Flow Behavior Prediction}\sec{flow-behavior-prediction}
+% 
+% To predict flow behavior, we must separate flow features into those that are observed and those that must be predicted.
+% For example, if we want to predict total flow behavior from some number of initial packets, then we would have the following matrix of observables:
+% \begin{align}
+%   X_\text{o} = \bracket{ ~
+%     \text{Size}_\text{init} ~
+%     \text{Ival}_\text{init} ~
+%     \text{Type} ~
+%     \text{Port} ~
+%   }
+% \end{align}
+% Observing five initial packets, $\text{Size}_\text{init}$ is the packet size feature-frequency vector for only those five packets. Similarly, $\text{Ival}_\text{init}$ is the feature-frequency vector for the first four inter-packet intervals.
+% The matrix of ``predictables'' would be:
+% \begin{align}
+%   X_\text{p} = \bracket{ ~
+%     \text{Size}_\text{rest} ~
+%     \text{Ival}_\text{rest} ~
+%     \text{Pkts} ~
+%   }
+% \end{align}
+% The matrices $\text{Size}_\text{rest}$ and $\text{Ival}_\text{rest}$ are the analogous  matrices for the rest of the packets in the flows.
+% 
+% From the observed data, $X_\text{o}$, we find the best fitting weight matrix, and use the weights together with our recovered model parameters to estimate probability distributions of features for each flow, using the hypothesized model.
+% This technique is fundamentally similar to fitting a regression line to noisy two-dimensional training data and then using the $x$-coordinates of data points to linearly predict the $y$-coordinates.
+% The main differences are the vastly higher number of dimensions and more complex structure we assume for our data.
+% 
+% % We use the packet sizes and inter-packet intervals of the initial packets, together with their \caps{IP} type and port numbers to predict the distribution of packets sizes and inter-packet intervals for the rest of the flow, as well as predicting a distribution of possible of packet counts.
+% % In order to do this prediction, subspace factorization must be done with the observable and predictable matrices separated.
+% % That is, subspace factorization must be done on the matrix $[X_\text{o}~X_\text{p}]$.
+% % However, we perform our subspace segmentation step on the combined data as in \Equation{X}.
+% % Why the difference? We have two pragmatic reasons:
+% % 1) the segmentation step seems to work better with the unseparated matrix.
+% % 2) we want to apply our prediction technique with different numbers of initial packets;
+% % the segmentation step is very slow, while the factorization step is relatively fast;
+% % this way we can use the same segmentation result for varying numbers of initial packets.
+% 
+% \newfootnote{\separationnote}{%
+% We use an unseparated feature matrix for subspace segmentation, but separated observable and predictable features for subspace factorization.
+% This is partly because segmentation appears to work better using combined features, but also so that we can reuse the same expensive segmentation computation when performing prediction with different numbers of initial packets.
+% }
+% 
+% Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix from ~\Section{model-recovery}, with separated observable and predictable features.\separationnote
+% From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
+% \begin{align}
+%   W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
+% \end{align}
+% Note that since the weights must be nonnegative, a nonnegative least squares algorithm must be used~\cite{Benthem04,Kim08:block-pivot}.
+% From here, we can estimate the underlying feature distributions for the flows:
+% \begin{align}
+%   Q^* = W^*P.
+% \end{align}
+% In particular, the ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
+% To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
+% The next section explores how to preform this evaluation and how our technique performs compared with other possible predictors. 
+% 
+% \section{Results}\sec{results}
+% 
+% % It seems wise at this point to address the nature of prediction for highly nondeterministic phenomena like network traffic.
+% Brief reflection shows that one cannot hope to accurately predict the exact behavior of flows:
+% flows may exhibit the same initial behavior but subsequently behave quite differently.
+% The best we can hope to do is to predict a \emph{distribution} of possible outcomes given the observed initial behavior.
+% When compared with a specific outcome, such a prediction cannot be said to be unequivocally right or wrong.
+% % How then can we measure the quality of a predicted distribution of outcomes as compared to a single outcome?
+% % This subtle and difficult issue is central to our evaluation methodology.
+% % In what follows, we have performed prediction from observing only five initial packets from each flow.
+% 
+% % To compare the predicted distributions of packet sizes and inter-packet intervals against the observed distributions, we use the most common ``goodness-of-fit'' test:
+% 
+% To test the quality of a predicted distribution as compared with a sample of values which may or may not come from that distribution, we use the single-sample Kolmogorov-Smirnov (K-S) ``goodness-of-fit'' test~\cite{Feller68}.
+% The K-S test compares the cumulative distribution function (\caps{CDF}) of a theoretical distribution with the empirical cumulative distribution function of the sample.
+% The test uses the largest absolute difference between the \caps{CDF}s as a statistic to measure how plausible it is that the sample was drawn from the hypothesized distribution.
+% The K-S statistic is transformed into a p-value:
+% the probability of obtaining a result as extreme as observed, assuming the sample really came from the hypothesized distribution.
+% 
+% \newfootnote{\ksidealnote}{If the K-S test were perfect, the pragmatic ideal baseline would be uniform. The fact that it is not demonstrates the imperfection of the K-S test.}
+% 
+% We evaluate the quality of our packet size and inter-packet interval distribution predictions by examining the distribution of K-S p-values for the predicted distribution versus the observed sample.
+% In theory, if the predictions are correct, the p-values should be uniformly distributed on the interval [0,1].
+% In practice, however, the K-S test is not perfect, and its p-values are not uniform.
+% Instead of comparing predictions to the nonexistent theoretical ideal, we use a more pragmatic ideal as a baseline:
+% p-values of samples that are actually drawn from the predicted distributions.
+% We measure quality of predictions by how much worse that this ideal the predictions are.\ksidealnote
+% 
+% \Figure{cdf} shows selected p-value \caps{CDF}s for our predicted distributions compared to the ideal baseline.
+% For comparison, we also show the results for two simplistic prediction techniques.
+% The first alternative, ``mean,'' always predicts the average behavior of the entire training trace.
+% This does not perform as badly as one might think it would:
+% always guessing the average is not an abysmal failure.
+% The second alternative, ``self,'' predicts the behavior that has already been seen.
+% % This is the best guess one can make about a flow, without having been trained on any other flows:
+% % just guess that it will keep doing what it has already done.
+% 
+% A na\"ive point-measure of the error of these predictions is the rate at which they fail the K-S test at a fixed significance level, such as 1\% or 5\%, as compared to the ideal.
+% This is equivalent to measuring the distance above the ideal \caps{CDF} at the 0.01 or 0.05 p-value mark.
+% This measure of error is na\"ive because these traditional significance levels are intentionally highly conservative:
+% they are chosen so as to incorrectly reject the null only 1\% or 5\% of the time.
+% Thus, they only reject the worst possible predictions.
+% The mean predictor makes a perfect example:
+% by guessing the average behavior it actually makes relatively few really bad predictions but makes far more poor and mediocre predictions than it should, and very few good predictions.
+% Our predictor, on the other hand, maintains a fairly steady error rate somewhat above the ideal, and in particular makes as many near-perfect predictions as the ideal.
+% 
+% As a better point-measure of the quality of a predictor, we propose the maximum vertical distance between its p-value \caps{CDF} and the ideal.
+% This is equivalent to choosing the worst possible predetermined significance level for each predictor and evaluating it at that level.
+% Under this measure, predictors cannot ``hide'' their errors by shifting them around the p-value range.
+% The maximum vertical difference from the ideal for each predictor is shown in \Figure{cdf} with vertical bars.
+% This is the the overall error rate of the predictor.
+% The success rate is the complement of the error rate.
+% \Figure{success-rates} shows the success rates of various predictions across the six data sets.
+% Our method predicts size and interval behaviors with accuracy between 70\% and 90\% across all data sets, while the other methods remain well below 50\% with few exceptions.
+% 
+% Next we turn to the evaluation of packet counts predictions.
+% Here we cannot use the K-S test:
+% although we have a predicted distribution of possible packet counts, we have only one value to compare it to---the observed number of packets.
+% Instead we use the predicted distributions themselves to produce p-values for observed packet counts.
+% We compute how ``extreme'' each observed packet count value is in the predicted distribution of values:
+% what fraction of the distribution is as large or larger than the observed value.
+% If the predictions are accurate, then these ``p-values'' should be uniformly distributed.
+% 
+% \Figure{packets-accuracy} shows the \caps{CDF} of p-values of observed packet counts versus our predicted distributions.
+% While the \caps{CDF}s do not remain perfectly straight along the diagonal, the general tendency is for our predictions to remain fairly accurate.
+% There is some tendency for the observations to fall at the high and low ends of the predicted distributions, indicating that our predictions are somewhat too ``narrow.''
+% Nevertheless, the general nearness to the diagonal shows that, on the whole, our packet predictions remain fairly accurate.
+% 
+% Accuracy alone is insufficient, however:
+% guessing the mean distribution of packet counts yields a perfectly accurate predictor by this criterion.
+% What we want, however, is to remain accurate but become more precise in our predictions of packet count distributions.
+% We can measure this precision by computing the information-theoretic entropy of each distribution.
+% We want our accuracy to remain intact, but the entropy of our predictions to go down as much as possible.
+% 
+% \Figure{packets-entropy} shows the \caps{CDF}s of entropy values for our predictions across all six data sets.
+% The entropy of the average behavior of each set is indicated with a vertical line.
+% Entropy of predictions must be evaluated as compared with this.
+% In some cases, the entropy of our prediction is greater than the entropy of the average behavior.
+% In such cases, we can simply use the average behavior as a prediction instead.
+% Most of the time, however, we are gaining a great deal of information about what the actual packet count will be:
+% entropy is reduced to less than two bits or less about half of the time.
+% 
+% A closely related measure to entropy is the reduction in uncertainty.
+% The uncertainty of a prediction is two raised to the power of its entropy:
+% the number of possible choices the bits of entropy can encode.
+% The reduction in uncertainty is the fraction of the mean behavior's uncertainty that remains when we use our predictor.
+% This is the fraction of the original ``number'' of possible values that remain after our prediction as compared to before.
+% \Figure{packets-uncertainty} shows that across the six data sets, half of the time we discard between 75\% and 90\% of the original uncertainty.
+% 
+% \section{Discussion \& Related Work}\sec{discussion}\sec{related-work}
+% 
+% The results demonstrate that we can predict the packet size distribution, inter-packet interval distribution, and packet count distribution of flows from only a handful of initial packets of each flow.
+% Specifically, we have used five initial packets to predict these distributions with between 70\% and 90\% accuracy across a wide variety of network traces.
+% Moreover, about half of the time, we can reduce our uncertainty about the number of packets that flows will have by 80\% or more.
+% Immediate applications of this ability to accurately predict individual flow behaviors abound.
+% Quality of service (\caps{QoS}) schemes attempting to provide high-quality service guarantees for streaming voice and video wireless through wireless networks could use such predictions to know, almost presciently, how much data flows are likely to transmit and how often.
+% Routers could use information about data rates from these predictions to load-balance across multiple possible routes towards their ultimate destinations.
+% 
+% While these potential applications are useful, the real significance of this work lies elsewhere.
+% Predicting flow behavior is merely a pleasant side effect of the real breakthrough:
+% a detailed statistical model for network-wide flow behaviors.
+% The fundamental concept underlying this work is that there are a relatively small collection of ``basic behaviors'' that generate the vast majority of the flow behaviors found in any particular trace.
+% These behaviors are associated with distributions of various flow features:
+% packet sizes, inter-packet intervals, \caps{IP} protocol, port numbers and packet counts.
+% These features are drawn from these distributions to create actual flows.
+% We have treated the features as though they are sampled independently, but this is merely a simplification that allows us to estimate model parameters with computational techniques available today.
+% The fact that this estimation provides a model which can reasonably well predict the behaviors of flows demonstrates that the concept of modeling flows as a mixture of basic behaviors is viable, even if the details of how we represent flow features remains open to improvement.
+% 
+% Given that the statistical model we have proposed for flow behavior is fairly simple---and finite mixture modeling is a well established field that has been studied since 1894~\cite{McLachlan00}---one may very well ask why this basic linear structure of network traffic has not been discovered before.
+% Part of the reason is that traditional approaches to mixture modeling have been applicable to parametric probability distributions.
+% The distributions found in network traffic, however, are very distinctly non-parametric.
+% They are lumpy, unruly and generally quite ugly.
+% This is due largely to the fact that behaviors found in computer networks are not the by-products of smooth, natural phenomena, but rather of man-made artificial systems, following arbitrary, complex and capricious rules.
+% 
+% The numerical techniques needed to tackle non-parametric mixture modeling have only very recently become available.
 % In our model recovery procedure, we use a subspace segmentation algorithm published in 2007~\cite{Ma07}, two \caps{NMF} algorithms published in 2001 and 2008, respectively~\cite{Lee01,Kim08:anls}, and a low-rank \caps{NMF} initialization technique published for the first time here.
-% And these techniques are still quite immature:
-% they will only improve over time, yielding even better recovery of the model parameters.
+% All of these techniques are still quite immature:
+% New \caps{NMF} algorithms have been regularly proposed since Lee and Seung's seminal paper in 2001.
+% Their algorithms are still the most well-known, and often the most reliable despite their various shortcomings~\cite{Langville06}.
+% These algorithms will only improve over time, yielding better recovery of model parameters.
 % Such improvements will immediately improve the performance of the prediction methods employed in this paper.
+% 
+% We are not the first researchers to apply linear techniques to the behavior of network traffic.
+% Lakhina~\emph{et~al.}~\cite{Lakhina04} apply principal component analysis (\caps{PCA})---which is computationally equivalent to \caps{SVD}---to the aggregate packet count traversing between ingress and egress points in Internet transit networks over time.
+% Their purpose for this application is to detect network traffic anomalies, but in the process, they introduce the concept of ``eigenflows'':
+% the principal components (\emph{c.f.} singular vectors) of aggregate traffic time series.
+% De Oliveira~\emph{et~al.}~\cite{DeOliveira06} further the application to \caps{PCA} to ingress-egress aggregate traffic volume, which the literature terms ``origin-destination flows,'' by classifying the principal components into three classes:
+% periodic components, peaked components, and noise components.
+% The same sorts of analysis have be extended by several other researchers~\cite{Babiarz06,Juva08}.
+% While some of the techniques are similar, such as \caps{SVD} and \caps{PCA}, and the terminology seems suggests similarity---all talk about ``flows''---the reality is that this research is a significant departure.
+% These earlier approaches analyze and forecast aggregate traffic volume in transit networks, while our research predicts the behaviors of individual flows, in the sense of a series of packets sharing a ``5-tuple,'' rather than the transit network ``origin-destination'' pair sense.
+% While understanding aggregate traffic behavior in core networks is certainly useful, we believe that even broader applications exist for the detailed individual flow behavior model we have proposed.
+% 
+% % Part of the reason the model of flow generation as mixtures of a basic set of behaviors is not obvious and has not previously been noted is likely that with convex linear combinations, so many different combinations can be created.
+% % Moreover, the analytical tools to extract this structure have only existed for a few years.
+% % In our model recovery procedure, we use a subspace segmentation algorithm published in 2007~\cite{Ma07}, two \caps{NMF} algorithms published in 2001 and 2008, respectively~\cite{Lee01,Kim08:anls}, and a low-rank \caps{NMF} initialization technique published for the first time here.
+% % And these techniques are still quite immature:
+% % they will only improve over time, yielding even better recovery of the model parameters.
+% % Such improvements will immediately improve the performance of the prediction methods employed in this paper.
+% 
+% \section{Conclusions}\sec{conclusions}
+% 
+% From a relatively simple observation about apparent linear structure in the feature-frequency of network traffic traces, we have proposed that flow behaviors traces follow a specific type of statistical model:
+% a non-parametric finite mixture model.
+% In this model, each flow's behavior distribution is a convex linear combination of a few ``basic behaviors,'' and the features of the flow are drawn from the resulting hybrid distribution of behaviors.
+% We are able to use recently developed data mining tools to recover estimates of the model's parameter matrix from training trace data.
+% Using the recovered trace parameters, we can perform prediction on flow behaviors to predict their behavior from observing only a few initial packets of each flow.
+% In our experiments, we observe only five initial packets of each flow and succeed in predicting these distribution of packet sizes and inter-packet intervals with between 70\% and 90\% accuracy across a wide variety of network traces.
+% Also, half of the time, we can reduce our uncertainty about the number of packets that flows will have by 80\% or more, giving very important early information about the likely duration of each flow.
+% Combining these distribution predictions, one can readily predict distributions for the duration and total data volume of each flow.
+% 
+% Despite the obvious immediate practical applications of the prediction techniques demonstrated here, the real importance of this work lies in the theoretical underpinnings.
+% The proposed model of flow behavior as a finite mixture model is the first detailed statistical model of universal flow behavior.
+% Such a model stands to have great impact on the networking community.
+% It is our hope and belief that our model of flow behavior will provide future insights into other aspects of network traffic modeling:
+% in particular traffic classification and realistic workload generation.
+% The recovered model used in this paper is very close to providing a usable model for traffic generation already.
+% The largest missing piece is a model for generating realistic weight matrices.
+% With realistic basic behavior matrices extracted from traces and a means of generating realistic weight matrices, we have immediately a model for generating realistic traffic traces.
+% Earlier research has show that it is sufficient for simulation purposes to generate flows with realistic packet size distributions, inter-packet interval distributions, and packet counts, repeatedly sampling packets from these distributions~\cite{Karpinski07:realism,Karpinski07:cbr-failure}.
+% If such applications based on this flow behavior model or other similar ones prove as fruitful as the present application to flow behavior prediction, those results will provide further evidence of the effectiveness and validity of our proposed model.
+% 
+% % The next obvious application is to use this structure to perform better traffic analysis and classification, but ultimately the most powerful use of such modeling is to generate realistic workload for network simulations.
+% % As noted by other research~\cite{Kaprinski07:realism,Karpinski07:cbr-failure}, the lack of realistic models for wireless workload
+% 
+% \vfill
+% \pagebreak
 
-\section{Conclusions}\sec{conclusions}
-
-From a relatively simple observation about apparent linear structure in the feature-frequency of network traffic traces, we have proposed that flow behaviors traces follow a specific type of statistical model:
-a non-parametric finite mixture model.
-In this model, each flow's behavior distribution is a convex linear combination of a few ``basic behaviors,'' and the features of the flow are drawn from the resulting hybrid distribution of behaviors.
-We are able to use recently developed data mining tools to recover estimates of the model's parameter matrix from training trace data.
-Using the recovered trace parameters, we can perform prediction on flow behaviors to predict their behavior from observing only a few initial packets of each flow.
-In our experiments, we observe only five initial packets of each flow and succeed in predicting these distribution of packet sizes and inter-packet intervals with between 70\% and 90\% accuracy across a wide variety of network traces.
-Also, half of the time, we can reduce our uncertainty about the number of packets that flows will have by 80\% or more, giving very important early information about the likely duration of each flow.
-Combining these distribution predictions, one can readily predict distributions for the duration and total data volume of each flow.
-
-Despite the obvious immediate practical applications of the prediction techniques demonstrated here, the real importance of this work lies in the theoretical underpinnings.
-The proposed model of flow behavior as a finite mixture model is the first detailed statistical model of universal flow behavior.
-Such a model stands to have great impact on the networking community.
-It is our hope and belief that our model of flow behavior will provide future insights into other aspects of network traffic modeling:
-in particular traffic classification and realistic workload generation.
-The recovered model used in this paper is very close to providing a usable model for traffic generation already.
-The largest missing piece is a model for generating realistic weight matrices.
-With realistic basic behavior matrices extracted from traces and a means of generating realistic weight matrices, we have immediately a model for generating realistic traffic traces.
-Earlier research has show that it is sufficient for simulation purposes to generate flows with realistic packet size distributions, inter-packet interval distributions, and packet counts, repeatedly sampling packets from these distributions~\cite{Karpinski07:realism,Karpinski07:cbr-failure}.
-If such applications based on this flow behavior model or other similar ones prove as fruitful as the present application to flow behavior prediction, those results will provide further evidence of the effectiveness and validity of our proposed model.
-
-% The next obvious application is to use this structure to perform better traffic analysis and classification, but ultimately the most powerful use of such modeling is to generate realistic workload for network simulations.
-% As noted by other research~\cite{Kaprinski07:realism,Karpinski07:cbr-failure}, the lack of realistic models for wireless workload
-
-\vfill
-\pagebreak
-
-\small
+\scriptsize
 \bibliography{references}
 
 \end{document}

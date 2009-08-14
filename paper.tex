@@ -36,7 +36,7 @@ They provide highly useful tools for network management, routing decisions, and 
 However, they also provide evidence that the hypothesized model gives a correct explanation for the observed linear structure in real network traffic.
 \end{abstract}
 
-\section{Introduction}\sec{introduction}
+\section*{Extended Abstract}
 
 \newfootnote{\flownote}{We use the common definition of a \textit{flow} as a sequence of packets sharing the same  ``5-tuple'': IP protocol type, source and destination nodes, and TCP/UDP port numbers.}
 \newfootnote{\directsumnote}{Direct sum is the vector space analogue of cross product.}
@@ -50,7 +50,7 @@ For example, the vector for the distribution of packet sizes of a flow with four
   \text{size} = \frac{1}{4+2}\parens{4\vec{e}_{40} + 2\vec{e}_{145}}.
 \end{align}
 % The dimension of this representation is 1500 because that is typically the maximum transfer unit (\caps{MTU}) of local networks.
-Different aspects of flow behavior can be represented in this way, and these representations can be combined by taking the direct sum of their representation vectors:\directsumnote
+Different aspects of flow behavior can be represented in this way, and these representations can be combined by taking the direct sum of their representation vectors:
 \begin{align}\eqn{flow}
   \text{flow} =
   \text{size} \directsum
@@ -59,7 +59,7 @@ Different aspects of flow behavior can be represented in this way, and these rep
   \text{port} \directsum
   \text{pkts}.
 \end{align}
-% The features represented here are packet size distribution, inter-packet interval distribution, \caps{IP} protocol type, source and destination port numbers, and distribution of packet counts.
+The features here are packet size and inter-packet interval distributions, \caps{IP} protocol type, source and destination port numbers, and packet count.
 The behavior of a feature across a collection of flows can be expressed as a matrix where each row represents a flow:
 \begin{align}\eqn{Size}
   \text{Size} = \begin{bmatrix}
@@ -78,8 +78,7 @@ The overall behavior of the collection of flows then becomes a concatenation of 
     \text{Pkts} ~
   }.
 \end{align}
-It is this matrix, representing the total behavior of a collection of flows, to which we apply our analysis.
-
+% It is this matrix, representing the total behavior of a collection of flows, to which we apply our analysis.
 When traffic traces are represented like this, a very curious thing happens:
 the resulting matrices exhibit a great deal of linear structure.
 Specifically, flow behaviors tend to lie near the union of a small set of low-rank subspaces.
@@ -108,7 +107,7 @@ These scatter plots show the first two most significant dimensions of the behavi
 % it allows us to use least squares optimization on observed features to predict individual flow behavior.
 % We use this technique to predict the following characteristics of flows from a few initial packets.
 
-We hypothesize that the behavior distribution for most flows is a mixture of a relatively small set of ``basic behaviors.''
+To explain this linear structure, we hypothesize that the behavior distribution for most flows is a mixture of a small set of ``basic behaviors.''
 Moreover, only even smaller subsets of these basic behaviors are typically combined with each other.
 Under these assumptions, we can express the distribution of each flow's behaviors as a finite mixture model~\cite{McLachlan00}:
 \begin{align}\eqn{mixture-model}
@@ -132,7 +131,7 @@ This is only one possible hypothesis that fits the data.
 Like any hypothesis, it must be tested.
 Our prediction technique, aside from providing a practical application, serves as a hypothesis test:
 we try to recover the matrices $W$ and $P$ from our noisy and imperfect observations of $Q$ and use the recovered model to predict real flow behaviors.
-If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis are valid.
+If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis approximate reality.
 
 % This prediction technique is clearly of immediate practical use:
 % applications range from network management to routing to quality of service.
@@ -209,48 +208,47 @@ These data sets represent a broad cross-section of traffic patterns over time an
 We randomly sampled 5000 flows from each trace for training and another 5000 flows for testing.
 Since the initial five packets are used for prediction, we consider only flows with at least five packets.
 
+From the sampled training data we recover estimates, $W^*$ and $P^*$, of the factors in \Equation{mixture-model-matrix}.
+To automatically detect the low-rank linear structures, we use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into a union of subspaces using lossy data coding and compression~\cite{Ma07}.
+Then we determine the hull points of each linear structure, using nonnegative matrix factorization (\caps{NMF})~\cite{Lee01}:
+if $Q_c$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_c$ and $P_c$, such that $Q_c \approx W_c P_c$.
+Our reconstructed $P^*$ is a vertical concatenation of these $P_c$ matrices, while $W^*$ is a row-permutation of the direct sum of $W_c$ matrices.
+We use Kim and Park's alternating non-negative least squares algorithm~\cite{Kim08:anls} for rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm~\cite{Lee01}.
+Good prediction performance requires special initialization of the \caps{NMF} algorithms, using techniques that we lack room to detail here.
+
+To predict flow behavior, we separate flow features into those observed and those to be predicted:
+\begin{align}
+  X_\text{o} &= \bracket{ ~
+    \text{Size}_\text{init} ~
+    \text{Ival}_\text{init} ~
+    \text{Type} ~
+    \text{Port} ~
+  } \\
+  X_\text{p} &= \bracket{ ~
+    \text{Size}_\text{rest} ~
+    \text{Ival}_\text{rest} ~
+    \text{Pkts} ~
+  }
+\end{align}
+$\text{Size}_\text{init}$ is the packet size matrix for the first five packets, while $\text{Size}_\text{rest}$ is the matrix for the remainder of the packets, and similarly for inter-packet intervals.
+From and observation matrix, $X_\text{o}$, and the recovered model parameters, $P^*$, we can make predictions about $X_\text{p}$.
+Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix  with separated observable and predictable features.
+From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
+\begin{align}
+  W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
+\end{align}
+Note that since the weights must be nonnegative, a nonnegative least squares algorithm must be used~\cite{Benthem04,Kim08:block-pivot}.
+From here, we can estimate the underlying feature distributions for the flows:
+\begin{align}
+  Q^* = W^*P.
+\end{align}
+The ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
+To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
+
 \vfill
 \break
-
-\subsection{Data Sets}
-
-We use randomly sampled traffic from six different network traces.
-All six traces are freely available from the \caps{CRAWDAD} wireless trace repository~\cite{Yeo06}.
-Details of the traces are shown in \Table{traces}.
-These traces represent a broad cross-section of traffic patterns over time and a reasonable variety of network types.
-Unfortunately, we could not find any freely available residential or corporate network traces that were usable for our analysis.
-We randomly sampled 5000 flows from each trace for training and another 5000 flows for testing.
-Since the initial five packets are used for prediction, we consider only flows with at least five packets.
-
-\subsection{Feature-Frequency Representation}\sec{representation}
-
-We embed the following features of flow behavior into vector spaces via feature-frequency representation:
-packet size distribution,
-inter-packet interval distribution,
-\caps{IP} protocol type,
-\caps{TCP/UDP} port numbers,
-and packet count.
-%
-Packet sizes are naturally discrete, taking on values from 1 to the \caps{MTU}, which was 1500 in all of our traces.
-%
-Inter-packet intervals must be quantized, using the scheme described by Karpinski~\emph{et~al.}~\cite{Karpinski08} but using only 500 dimensions instead of 1500.
-This scheme maps bins of interval durations to indices, with the bins starting at the scale of milliseconds, but ramping smoothly up to seconds at the high end of the scale.
-Intervals of more than ten minutes are considered to start a new flow.
-%
-\caps{IP} protocol type is also naturally discrete, with values from 0 to 255, represented by a 256-dimensional vector.
-The feature-frequency vector for a single flow is always just a vector with a single unit entry and zeros elsewhere.
-%
-Port numbers are naturally discrete as well, but the range of port numbers (0-65535) is too large for practical representation using a full histogram.
-Instead, we represent port numbers by their remainder modulo 1000.
-Port numbers are sufficiently spread out that this still provides ample distinction between traffic types.
-Moreover, since the direction of a flow is generally uninteresting, we represent both source and destination in a single vector containing two values.
-%
-We also represent the packet count of each flow.
-Since the potential packet count is unlimited, some approach is needed for limiting the dimension of this frequency representation.
-We use the simplest approach and simply cap the packet count at 3000 packets:
-all flows with 3000 or more packets fall into the same histogram bin and are simply considered ``very large.''
-
-\subsection{Model Recovery}\sec{model-recovery}
+\vfill
+\break
 
 \subsubsection{Subspace Segmentation}\sec{subspace-segmentation}
 

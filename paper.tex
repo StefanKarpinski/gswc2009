@@ -41,24 +41,43 @@ However, they also provide evidence that the hypothesized model gives a correct 
 \newfootnote{\flownote}{We use the common definition of a \textit{flow} as a sequence of packets sharing the same  ``5-tuple'': IP protocol type, source and destination nodes, and TCP/UDP port numbers.}
 \newfootnote{\directsumnote}{Direct sum is the vector space analogue of cross product.}
 
-This paper is the first in a three-part series employing a numerical linear algebra techniques to understand and analyze network traffic patterns at a detailed level of individual flows and packets.\flownote
-All three papers employ the same analytical approach but investigate different fundamental applications of traffic modeling:
-prediction, classification and generation.
-In this paper we present our hypothesis and demonstrate how it can be used to predict the behavior of individual flows from observing only a handful of initial packets.
-% The following papers will focus on classification of flows according to application type and realistic workload generation.
-
 This work begins with a particular way of representing flow behaviors as vectors.
-% and the behaviors of entire traffic traces as large, sparse matrices.
-% This approach was first proposed in by Karpinski~\emph{et~al.}~\cite{Karpinski08}, who called this general type of representation \emph{linear representations}.
 The representation is quite simple.
 For each feature of a flow, we represent that aspect of the flow's behavior as a \emph{feature-frequency vector}:
 a vector having a dimension for each possible value of the feature and whose coordinates are the relative frequency of values.
-For example, the vector representing the distribution of packet sizes of a flow having four 40-byte and two 145-bytes packets is
+For example, the vector for the distribution of packet sizes of a flow with four 40-byte and two 145-bytes packets is
 \begin{align}
-  \text{size} = \frac{1}{6}\parens{4\vec{e}_{40} + 2\vec{e}_{145}}.
+  \text{size} = \frac{1}{4+2}\parens{4\vec{e}_{40} + 2\vec{e}_{145}}.
 \end{align}
 % The dimension of this representation is 1500 because that is typically the maximum transfer unit (\caps{MTU}) of local networks.
-Different aspects of flow behavior can be represented in this way, and these representations can be combined by taking the direct sum of their representation vectors.\directsumnote
+Different aspects of flow behavior can be represented in this way, and these representations can be combined by taking the direct sum of their representation vectors:\directsumnote
+\begin{align}\eqn{flow}
+  \text{flow} =
+  \text{size} \directsum
+  \text{ival} \directsum
+  \text{type} \directsum
+  \text{port} \directsum
+  \text{pkts}.
+\end{align}
+The behavior of a feature across a collection of flows can be expressed as a matrix where each row represents a flow:
+\begin{align}\eqn{Size}
+  \text{Size} = \begin{bmatrix}
+    \text{size}_1 \\
+    \vdots \\
+    \text{size}_m
+  \end{bmatrix}.
+\end{align}
+The overall behavior of the collection of flows then becomes a concatenation of these feature matrices:
+\begin{align}\eqn{X}
+  X = \bracket{ ~
+    \text{Size} ~
+    \text{Ival} ~
+    \text{Type} ~
+    \text{Port} ~
+    \text{Pkts} ~
+  }.
+\end{align}
+It is this matrix, representing the total behavior of a collection of flows, to which we apply our analysis.
 
 The behavior of any set of flows, such as a traffic trace, can be represented as a matrix of feature-frequency vectors.
 We use the convection that features values correspond to matrix columns while flows correspond to matrix rows.

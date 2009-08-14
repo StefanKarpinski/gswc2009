@@ -79,12 +79,27 @@ The overall behavior of the collection of flows then becomes a concatenation of 
 \end{align}
 It is this matrix, representing the total behavior of a collection of flows, to which we apply our analysis.
 
-The behavior of any set of flows, such as a traffic trace, can be represented as a matrix of feature-frequency vectors.
-We use the convection that features values correspond to matrix columns while flows correspond to matrix rows.
 When traffic traces are represented like this, a very curious thing happens:
 the resulting matrices exhibit a great deal of linear structure.
 Specifically, flow behaviors tend to lie near the union of a small set of low-rank subspaces.
-It is the investigation of this linear structure that lies at the core of this paper.
+\Figure{svd}~shows this structure visually.
+The scatter plots show the first two most significant dimensions of the behavior matrix after reduction via singular value decomposition (\caps{SVD}) and projection onto the unit-sum hyperplane.
+
+\begin{figure}[t]
+\vspace{-0.9em}
+\begin{center}
+\subfloat[\scriptsize{DART.}]{\includegraphics[width=1.059in]{svd/dart}}
+% \subfloat[\scriptsize{IETF 60}]{\includegraphics[width=1.059in]{svd/ie60}}
+% \subfloat[\scriptsize{SIGCOMM 2004}]{\includegraphics[width=1.059in]{svd/sc04}}
+\subfloat[\scriptsize{IETF 67}]{\includegraphics[width=1.059in]{svd/ie67}}
+% \subfloat[\scriptsize{SIGCOMM 2001}]{\includegraphics[width=1.059in]{svd/sc01}}
+\subfloat[\scriptsize{UCSD}]{\includegraphics[width=1.059in]{svd/ucsd}}
+\caption{Scatter plots of the two most significant dimensions of the feature-frequency representations of traffic samples from the six network traffic traces considered in this paper.} 
+\fig{svd}
+\end{center}
+\vspace{-2em}
+\end{figure}
+
 
 % We hypothesize that the reason for the linear structure is that the distribution of each flows behavior is a finite mixture of a small set of ``basic behaviors.''
 % Moreover, the mixing of basic behaviors is itself structured.
@@ -112,21 +127,6 @@ The experimental methodology for testing this hypothesis is presented in \Sectio
 We conclude with final remarks in \Section{conclusions}.
 
 \section{Background \& Motivation}\sec{background}\sec{motivation}
-
-\begin{figure}[t]
-\vspace{-0.6em}
-\begin{center}
-\subfloat[\scriptsize{DART.}]{\includegraphics[width=1.059in]{svd/dart}}
-% \subfloat[\scriptsize{IETF 60}]{\includegraphics[width=1.059in]{svd/ie60}}
-% \subfloat[\scriptsize{SIGCOMM 2004}]{\includegraphics[width=1.059in]{svd/sc04}}
-\subfloat[\scriptsize{IETF 67}]{\includegraphics[width=1.059in]{svd/ie67}}
-% \subfloat[\scriptsize{SIGCOMM 2001}]{\includegraphics[width=1.059in]{svd/sc01}}
-\subfloat[\scriptsize{UCSD}]{\includegraphics[width=1.059in]{svd/ucsd}}
-\caption{SVD flow-behavior scatter plots for the three of the six network traffic traces considered in this paper.} 
-\fig{svd}
-\end{center}
-\vspace{-2em}
-\end{figure}
 
 Before we can present our motivating observation about the linear structure of network traffic, we must explain how flow behaviors are represented as feature-frequency vectors. The low-level details of this representation are given in \Section{representation}.
 For now, what the reader must know is that each feature is represented by a vector where each dimension corresponds to a possible value of the feature;

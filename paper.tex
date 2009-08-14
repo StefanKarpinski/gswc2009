@@ -3,12 +3,12 @@
 \let\@copyrightspace\relax
 \makeatother
 
-\newcommand{\thetitle}{Predicting Network Flow Behavior with Linear Algebra}
+\newcommand{\thetitle}{Predicting Network Flow Behavior From Five Packets}
 
 \input{packages}
 \input{definitions}
 
-\title{\vspace{-0.5em}\thetitle}
+\title{\vspace{-1em}\thetitle}
 \author{
 {Stefan~Karpinski, John~R.~Gilbert, Elizabeth~M.~Belding} \vspace{0.75em}\\
 Department of Computer Science \\
@@ -94,20 +94,20 @@ We conclude with final remarks in \Section{conclusions}.
 
 \section{Background \& Motivation}\sec{background}\sec{motivation}
 
-\begin{figure*}[t]
-\vspace{-1em}
+\begin{figure}[t]
+\vspace{-0.6em}
 \begin{center}
-\subfloat[\footnotesize{DARTMOUTH}]{\includegraphics[width=1.15in]{svd/dart}}
-\subfloat[\footnotesize{IETF 60}]{\includegraphics[width=1.15in]{svd/ie60}}
-\subfloat[\footnotesize{IETF 67}]{\includegraphics[width=1.15in]{svd/ie67}}
-\subfloat[\footnotesize{SIGCOMM 2001}]{\includegraphics[width=1.15in]{svd/sc01}}
-\subfloat[\footnotesize{SIGCOMM 2004}]{\includegraphics[width=1.15in]{svd/sc04}}
-\subfloat[\footnotesize{UCSD}]{\includegraphics[width=1.15in]{svd/ucsd}}
-\caption{SVD flow-behavior scatter plots for the six network traffic traces considered in this paper.} 
+\subfloat[\scriptsize{DART.}]{\includegraphics[width=1.059in]{svd/dart}}
+% \subfloat[\scriptsize{IETF 60}]{\includegraphics[width=1.059in]{svd/ie60}}
+% \subfloat[\scriptsize{SIGCOMM 2004}]{\includegraphics[width=1.059in]{svd/sc04}}
+\subfloat[\scriptsize{IETF 67}]{\includegraphics[width=1.059in]{svd/ie67}}
+% \subfloat[\scriptsize{SIGCOMM 2001}]{\includegraphics[width=1.059in]{svd/sc01}}
+\subfloat[\scriptsize{UCSD}]{\includegraphics[width=1.059in]{svd/ucsd}}
+\caption{SVD flow-behavior scatter plots for the three of the six network traffic traces considered in this paper.} 
 \fig{svd}
 \end{center}
 \vspace{-2em}
-\end{figure*}
+\end{figure}
 
 Before we can present our motivating observation about the linear structure of network traffic, we must explain how flow behaviors are represented as feature-frequency vectors. The low-level details of this representation are given in \Section{representation}.
 For now, what the reader must know is that each feature is represented by a vector where each dimension corresponds to a possible value of the feature;
@@ -440,31 +440,6 @@ The next section explores how to preform this evaluation and how our technique p
 
 \section{Results}\sec{results}
 
-\begin{figure*}[t]
-\vspace{-1em}
-\begin{center}
-\subfloat[Packet sizes: \footnotesize{DARTMOUTH}]{%
-\includegraphics[width=2.35in]{size/dart}}
-\subfloat[Packet sizes: \footnotesize{IETF 67}]{%
-\includegraphics[width=2.35in]{size/ie67}}
-\subfloat[Packet sizes: \footnotesize{SIGCOMM 2004}]{%
-\includegraphics[width=2.35in]{size/sc04}}
-\subfloat[Inter-packet intervals: \footnotesize{DARTMOUTH}]{%
-\includegraphics[width=2.35in]{ival/dart}}
-\subfloat[Inter-packet intervals: \footnotesize{IETF 67}]{%
-\includegraphics[width=2.35in]{ival/ie67}}
-\subfloat[Inter-packet intervals: \footnotesize{SIGCOMM 2004}]{%
-\includegraphics[width=2.35in]{ival/sc04}}
-\caption{%
-Empirical CDFs of Kolmogorov-Smirnov p-values for various predictors of packet size distribution and inter-packet interval distribution for two selected traces. Lower curves are better and the ideal curve provides a lower bound on quality.
-Vertical segments indicate the farthest distance between the ideal and each CDF.
-This distance serves as a measure of each predictor's overall error rate.
-}
-\fig{cdf}
-\end{center}
-\vspace{-1.5em}
-\end{figure*}
-
 % It seems wise at this point to address the nature of prediction for highly nondeterministic phenomena like network traffic.
 Brief reflection shows that one cannot hope to accurately predict the exact behavior of flows:
 flows may exhibit the same initial behavior but subsequently behave quite differently.
@@ -509,27 +484,6 @@ The mean predictor makes a perfect example:
 by guessing the average behavior it actually makes relatively few really bad predictions but makes far more poor and mediocre predictions than it should, and very few good predictions.
 Our predictor, on the other hand, maintains a fairly steady error rate somewhat above the ideal, and in particular makes as many near-perfect predictions as the ideal.
 
-\begin{figure*}[!t]
-\vspace{-1em}
-\begin{center}
-\subfloat[CDF of accuracy p-values]{\fig{packets-accuracy}%
-\includegraphics[width=2.351in]{pkts_accuracy}}
-\subfloat[CDF of prediction entropy values]{\fig{packets-entropy}%
-\includegraphics[width=2.351in]{pkts_entropy}}
-\subfloat[CDF of reduction of uncertainty]{\fig{packets-uncertainty}%
-\includegraphics[width=2.351in]{pkts_certainty}}
-\caption{%
-CDFs displaying the accuracy, uncertainty reduction, and entropy of our packet count predictions.
-Ideal behavior in \Figure{packets-accuracy} is as close to the diagonal as possible.
-For \Figure{packets-entropy}, lower entropy is better.
-the vertical lines indicate the entropy of the mean behavior for each trace;
-prediction entropy must be compared to this.
-In \Figure{packets-uncertainty}, the greater the reduction in uncertainty, the better.
-}
-\end{center}
-\vspace{-2em}
-\end{figure*}
-
 As a better point-measure of the quality of a predictor, we propose the maximum vertical distance between its p-value \caps{CDF} and the ideal.
 This is equivalent to choosing the worst possible predetermined significance level for each predictor and evaluating it at that level.
 Under this measure, predictors cannot ``hide'' their errors by shifting them around the p-value range.
@@ -542,11 +496,22 @@ Our method predicts size and interval behaviors with accuracy between 70\% and 9
 \begin{figure}[b]
 \vspace{-1em}
 \begin{center}
-\includegraphics[width=3.5in]{pred_stats}
-\caption{Success rates of various prediction methods.}
+\includegraphics[width=3.3in]{pred_stats}
+\caption{Accuracy rates of various methods of predicting packet size and inter-packet interval behaviors of flows from five packets.}
 \fig{success-rates}
 \end{center}
+\vspace{-1em}
+\end{figure}
+
+\begin{figure}[t]
 \vspace{-0.9em}
+\begin{center}
+\includegraphics[width=2.5in]{pred_stats_count}
+\vspace{-0.5em}
+\caption{Accuracy of predicting which flow of randomly chosen pairs will have more packets.}
+\fig{success-rates-count}
+\end{center}
+\vspace{-2em}
 \end{figure}
 
 Next we turn to the evaluation of packet counts predictions.

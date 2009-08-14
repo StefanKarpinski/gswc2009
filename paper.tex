@@ -130,102 +130,26 @@ A structure is ``generated'' by a small set of vertices:
 points belonging to a structure are near the hull of its vertices.
 This is only one possible hypothesis that fits the data.
 Like any hypothesis, it must be tested.
-The rest of this paper, aside from providing a practical application, serves as a hypothesis test:
+Our prediction technique, aside from providing a practical application, serves as a hypothesis test:
 we try to recover the matrices $W$ and $P$ from our noisy and imperfect observations of $Q$ and use the recovered model to predict real flow behaviors.
 If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis are valid.
 
-\vfill
-\break
+% This prediction technique is clearly of immediate practical use:
+% applications range from network management to routing to quality of service.
+% Looking deeper than these applications, however, the mere fact that this prediction technique works at all provides evidence that the underlying hypothesized model of flow behavior is valid.
+% Our future works will provide evidence and applications by applying this model to the problems of traffic classification and realistic workload generation.
 
-This prediction technique is clearly of immediate practical use:
-applications range from network management to routing to quality of service.
-Looking deeper than these applications, however, the mere fact that this prediction technique works at all provides evidence that the underlying hypothesized model of flow behavior is valid.
-Our future works will provide evidence and applications by applying this model to the problems of traffic classification and realistic workload generation.
-
-The rest of this paper is organized as follows.
-In \Section{background}, we provide some background and the present the observations which motivate this work.
-Our model and hypothesis about flow behavior is presented in \Section{hypothesis}.
-The experimental methodology for testing this hypothesis is presented in \Section{methodology} while the results follow in \Section{results}.
-\Section{discussion} discusses the meaning and impact of these results and gives context for this research in relation prior work.
-We conclude with final remarks in \Section{conclusions}.
-
-\section{Background \& Motivation}\sec{background}\sec{motivation}
-
-Before we can present our motivating observation about the linear structure of network traffic, we must explain how flow behaviors are represented as feature-frequency vectors. The low-level details of this representation are given in \Section{representation}.
-For now, what the reader must know is that each feature is represented by a vector where each dimension corresponds to a possible value of the feature;
-the coordinates of the vector are the normalized frequencies of the corresponding feature values.
-We have already given the example of packet size distribution in the introduction.
-Vectors are normalized so the coordinates of each feature-frequency vector have unit sum.
-To combine multiple feature-frequency vectors into a composite description of the overall behavior of a flow, we take the direct sum individual feature representations:\directsumnote
-\begin{align}\eqn{flow}
-  \text{flow} =
-  \text{size} \directsum
-  \text{ival} \directsum
-  \text{type} \directsum
-  \text{port} \directsum
-  \text{pkts}.
-\end{align}
-The behavior of a feature across a collection of flows can be expressed as a matrix where each row represents a flow:
-\begin{align}\eqn{Size}
-  \text{Size} = \begin{bmatrix}
-    \text{size}_1 \\
-    \vdots \\
-    \text{size}_m
-  \end{bmatrix}.
-\end{align}
-The overall behavior of the collection of flows then becomes a concatenation of these feature matrices:
-\begin{align}\eqn{X}
-  X = \bracket{ ~
-    \text{Size} ~
-    \text{Ival} ~
-    \text{Type} ~
-    \text{Port} ~
-    \text{Pkts} ~
-  }.
-\end{align}
-It is this matrix, representing the total behavior of a collection of flows, to which we apply our analysis.
-
-\newfootnote{\svdnote}{More precisely, the product of the first $k$ columns of $US$ with the first $k$ rows of $\trans{V}$ is a Frobenius-optimal rank-$k$ approximation of $X$.}
-
-\newfootnote{\projectionnote}{We could normalize the vectors to unit length, but then our projection would be spherical, artificially introducing curvature into our visualization.}
-
-To see the linear structure of these representation matrices, we apply one of the most fundamental tools of linear algebra:
-the singular value decomposition (\caps{SVD}).
-This matrix decomposition can be applied to any real matrix, factoring it into a product of three real matrices:
-\begin{align}
-  X = US\trans{V}.
-\end{align}
-$U$ and $V$ are orthogonal and $S$ is diagonal, with entries of nonincreasing nonnegative value.
-Among the useful properties of this factorization, is that the first $k$ columns of $US$ are an optimal $k$-dimensional reduced model of $X$.\svdnote
-This property allows us to visualize the structure of $X$ using initial columns of $US$---and this is precisely what we do.
-However, it must be done in a particular way.
-First determine an appropriate value for $k$.
-We use the number of dimensions necessary to account for 75\% of the variance seen in $X$;
-other approaches work well too.
-Discarding the rest of the dimensions has the effect of ``denoising'' the data.
-The vectors of the remaining $k$-dimensional reduction of $X$ may have different magnitudes, but we are only interested in direction, since vectors differing only by magnitude lie in the same one-dimensional subspace.
-Therefore, we project each row vector through the origin onto the unit-sum hyperplane.\projectionnote
-It is the coordinates of this reduced, projected data which exhibit linear structure.
-
-\Figure{svd} shows scatter plots of most significant two coordinates when this procedure is applied to a random sample of 5000 flows from each of six independent traffic traces.
-Clear linear structure is visible in all six traces:
-flow behaviors are heavily concentrated near low-dimensional subspaces.
-Behaviors concentrated along a one-dimensional subspace appear as dark ``spots'' where many points have been plotted;
-behaviors near two-dimensional subspaces appear as lines;
-behaviors on higher-dimensional subspaces appear as ``smears.''
-
-The presence of linear structure in the matrix representations of several independent traffic traces immediately raises two significant questions.
-The existential question: \emph{Why does this linear structure exist?}
-Followed, of course, by the practical question: \emph{How can we exploit this structure?}
-Neither question can be answered fully in a single paper, but we will attempt to address the existential problem in the next section.
-In the rest of this paper we apply this insight to the eminently practical problem of predicting the behavior of individual flows from the observation of only a few of their initial packets.
-
-\section{Model \& Hypothesis}\sec{model}\sec{hypothesis}
+% Our experimental procedure has three parts:
+% training, prediction and evaluation.
+% For training, we take samples of network traces and attempt to recover the parameters of the hypothesized model.
+% We use the recovered model to predict behaviors of a separate set of flows from the same trace, using only knowledge of five initial packets from each flow.
+% Finally, we must evaluate the quality of these predictions by comparing them against the actual behavior of those flows.
 
 \begin{table}
+\vspace{0.25em}
 \begin{center}
 \small
-\begin{tabular}{|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|}
 
 \hline
 \textbf{Trace} &
@@ -277,49 +201,16 @@ UCSD engineering \\
 \vspace{-2.5em}
 \end{table}
 
-Our answer to the question of why low-dimensional linear structure appears in the feature-frequency representation of network traffic can be expressed as the hypothesis that flow behavior follows a specific statistical model.
-% A mixture model, to be specific.
-We propose viewing each flow as having a probability distribution of possible behaviors it could exhibit.
-% We propose that the behavior of each flow is drawn from a probability distribution on a space possible behaviors.
-We hypothesize that the behavior distribution for most flows is a mixture of a relatively small set of ``basic behaviors.''
-Moreover, only even smaller subsets of these basic behaviors are typically combined with each other.
-Under these assumptions, we can express the distribution of each flow's behaviors as a finite mixture model~\cite{McLachlan00}:
-\begin{align}\eqn{mixture-model}
-  q_i(x) = \sum_{j=1}^r w_{ij} p_j(x),
-\end{align}
-Here $q_i$ and $p_j$ are probability density functions, and $w_{ij}$ are nonnegative weights, summing to unity for each $i$.
-\Equation{mixture-model} is expressed succinctly as matrix multiplication.
-Writing $Q_{ik} = q_i(k)$, $W_{ij} = w_{ij}$, and $P_{jk} = p_j(k)$, we have:
-\begin{align}\eqn{mixture-model-matrix}
-  Q = WP.
-\end{align}
-The number of basic behaviors, $r$, is the maximum possible rank of the feature distribution matrix, $Q$.
-Moreover, we can partition the rows of $P$ into classes such that $w_{ij_1}$ and $w_{ij_2}$ are both non-zero only if $j_1$ and $j_2$ are in the same class.
-Thus, each row of $Q$ is associated with exactly one class, and all the points associated with a class lie in the subspace spanned by its associated rows in $P$.
-Of course, even if this model is true, actual observed behaviors will be sampled from the ideal distributions of $Q$, producing an observation matrix, $X$, with a great deal of noise.
-% In particular, for features with vary small samples, the amount of noise introduced is quite large.
-Moreover, we expect that there should be many outliers:
-network traffic is such a complex phenomenon that no single model will explain all observations.
+We use randomly sampled traffic from six different network traces.
+All six traces are freely available from the \caps{CRAWDAD} wireless trace repository~\cite{Yeo06}.
+Details of the traces are shown in \Table{traces}.
+These traces represent a broad cross-section of traffic patterns over time and a reasonable variety of network types.
+Unfortunately, we could not find any freely available residential or corporate network traces that were usable for our analysis.
+We randomly sampled 5000 flows from each trace for training and another 5000 flows for testing.
+Since the initial five packets are used for prediction, we consider only flows with at least five packets.
 
-Despite these caveats, this model explains the structures found in \Figure{svd}.
-Points along the same low-rank structure are in the same class.
-Each structure is ``generated'' by a small set of vertices:
-the points belonging to the structure are near the hull of its vertices.
-However, this is only one possible hypothesis that fits the data.
-Like any hypothesis, it must be tested.
-The rest of this paper, aside from providing a practical application, serves as a hypothesis test:
-we try to recover the matrices $W$ and $P$ from our noisy and imperfect observations of $Q$ and use the recovered model to predict real flow behaviors.
-If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis are valid.
-
-\section{Methodology}\sec{methodology}
-
-Our experimental procedure has three parts:
-training, prediction and evaluation.
-For training, we take samples of network traces and attempt to recover the parameters of the model hypothesized in \Section{hypothesis}.
-We use the recovered model to predict behaviors of a separate set of flows from the same trace, using only knowledge of five initial packets from each flow.
-Finally, we must evaluate the quality of these predictions by comparing them against the actual behavior of those flows.
-In this section we present the methodology for training and prediction;
-how to evaluate prediction results is described together with the results in \Section{results}.
+\vfill
+\break
 
 \subsection{Data Sets}
 

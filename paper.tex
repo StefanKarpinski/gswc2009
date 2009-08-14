@@ -145,7 +145,7 @@ If the recovered model can make accurate predictions, this provides evidence tha
 % Finally, we must evaluate the quality of these predictions by comparing them against the actual behavior of those flows.
 
 \begin{table}
-\vspace{0.25em}
+\vspace{0.5em}
 \begin{center}
 \small
 \begin{tabular}{|c|c|c|c|}
@@ -237,7 +237,7 @@ From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by m
 \begin{align}
   W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
 \end{align}
-Note that since the weights must be nonnegative, a nonnegative least squares algorithm must be used~\cite{Benthem04,Kim08:block-pivot}.
+Since the weights must be nonnegative, a nonnegative least squares algorithm is used~\cite{Benthem04,Kim08:block-pivot}.
 From here, we can estimate the underlying feature distributions for the flows:
 \begin{align}
   Q^* = W^*P.

@@ -145,7 +145,6 @@ If the recovered model can make accurate predictions, this provides evidence tha
 % Finally, we must evaluate the quality of these predictions by comparing them against the actual behavior of those flows.
 
 \begin{table}
-\vspace{0.5em}
 \begin{center}
 \small
 \begin{tabular}{|c|c|c|c|}
@@ -244,6 +243,16 @@ From here, we can estimate the underlying feature distributions for the flows:
 \end{align}
 The ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
 To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
+
+\begin{figure}[t]
+\vspace{-0.02in}
+\begin{center}
+\includegraphics[width=3.3in]{pred_stats}
+\caption{Accuracy rates of various methods of predicting packet size and inter-packet interval behaviors of flows from five packets.}
+\fig{success-rates}
+\end{center}
+\vspace{-1em}
+\end{figure}
 
 \vfill
 \break
@@ -409,27 +418,6 @@ This is the the overall error rate of the predictor.
 The success rate is the complement of the error rate.
 \Figure{success-rates} shows the success rates of various predictions across the six data sets.
 Our method predicts size and interval behaviors with accuracy between 70\% and 90\% across all data sets, while the other methods remain well below 50\% with few exceptions.
-
-\begin{figure}[b]
-\vspace{-1em}
-\begin{center}
-\includegraphics[width=3.3in]{pred_stats}
-\caption{Accuracy rates of various methods of predicting packet size and inter-packet interval behaviors of flows from five packets.}
-\fig{success-rates}
-\end{center}
-\vspace{-1em}
-\end{figure}
-
-\begin{figure}[t]
-\vspace{-0.9em}
-\begin{center}
-\includegraphics[width=2.5in]{pred_stats_count}
-\vspace{-0.5em}
-\caption{Accuracy of predicting which flow of randomly chosen pairs will have more packets.}
-\fig{success-rates-count}
-\end{center}
-\vspace{-2em}
-\end{figure}
 
 Next we turn to the evaluation of packet counts predictions.
 Here we cannot use the K-S test:

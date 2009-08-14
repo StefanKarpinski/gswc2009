@@ -103,10 +103,39 @@ The scatter plots show the first two most significant dimensions of the behavior
 
 % We hypothesize that the reason for the linear structure is that the distribution of each flows behavior is a finite mixture of a small set of ``basic behaviors.''
 % Moreover, the mixing of basic behaviors is itself structured.
-The linear structure of network traffic allows us to perform a drastic model reduction on trace traffic patterns while preserving the essential characteristics of the original trace.
-Furthermore, when observable characteristics of flows are separated from features to be predicted, this model reduction is similar to a classical linear regression:
-it allows us to use least squares optimization on observed features to predict individual flow behavior.
-We use this technique to predict the following characteristics of flows from a few initial packets.
+% The linear structure of network traffic allows us to perform a drastic model reduction on trace traffic patterns while preserving the essential characteristics of the original trace.
+% Furthermore, when observable characteristics of flows are separated from features to be predicted, this model reduction is similar to a classical linear regression:
+% it allows us to use least squares optimization on observed features to predict individual flow behavior.
+% We use this technique to predict the following characteristics of flows from a few initial packets.
+
+We hypothesize that the behavior distribution for most flows is a mixture of a relatively small set of ``basic behaviors.''
+Moreover, only even smaller subsets of these basic behaviors are typically combined with each other.
+Under these assumptions, we can express the distribution of each flow's behaviors as a finite mixture model~\cite{McLachlan00}:
+\begin{align}\eqn{mixture-model}
+  q_i(x) = \sum_{j=1}^r w_{ij} p_j(x),
+\end{align}
+Here $q_i$ and $p_j$ are probability density functions, and $w_{ij}$ are nonnegative weights, summing to unity for each $i$.
+\Equation{mixture-model} is expressed succinctly as matrix multiplication.
+Writing $Q_{ik} = q_i(k)$, $W_{ij} = w_{ij}$, and $P_{jk} = p_j(k)$, we have:
+\begin{align}\eqn{mixture-model-matrix}
+  Q = WP.
+\end{align}
+The number of basic behaviors, $r$, is the maximum possible rank of the feature distribution matrix, $Q$.
+Moreover, we can partition the rows of $P$ into classes such that $w_{ij_1}$ and $w_{ij_2}$ are both non-zero only if $j_1$ and $j_2$ are in the same class.
+Thus, each row of $Q$ is associated with exactly one class, and all the points associated with a class lie in the subspace spanned by its associated rows in $P$.
+
+This model explains the structures in \Figure{svd}.
+Points along the same low-rank structure are in the same class.
+A structure is ``generated'' by a small set of vertices:
+points belonging to a structure are near the hull of its vertices.
+This is only one possible hypothesis that fits the data.
+Like any hypothesis, it must be tested.
+The rest of this paper, aside from providing a practical application, serves as a hypothesis test:
+we try to recover the matrices $W$ and $P$ from our noisy and imperfect observations of $Q$ and use the recovered model to predict real flow behaviors.
+If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis are valid.
+
+\vfill
+\break
 
 This prediction technique is clearly of immediate practical use:
 applications range from network management to routing to quality of service.

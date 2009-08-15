@@ -144,8 +144,8 @@ If the recovered model can make accurate predictions, this provides evidence tha
 % We use the recovered model to predict behaviors of a separate set of flows from the same trace, using only knowledge of five initial packets from each flow.
 % Finally, we must evaluate the quality of these predictions by comparing them against the actual behavior of those flows.
 
-From the sampled training data we recover estimates, $W^*$ and $P^*$, of the factors in \Equation{mixture-model-matrix}.
-To automatically detect the low-rank linear structures, we use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into a union of subspaces using lossy data coding and compression~\cite{Ma07}.
+From training data we recover estimates, $W^*$ and $P^*$, of the factors in \Equation{mixture-model-matrix}.
+To detect the low-rank linear structures, we use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into subspaces using lossy data coding and compression~\cite{Ma07}.
 Then we determine the hull points of each linear structure, using nonnegative matrix factorization (\caps{NMF})~\cite{Lee01,Kim08:anls}:
 if $Q_c$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_c$ and $P_c$, such that $Q_c \approx W_c P_c$.
 Our reconstructed $P^*$ is a vertical concatenation of these $P_c$ matrices, while $W^*$ is a row-permutation of the direct sum of $W_c$ matrices.
@@ -171,26 +171,18 @@ From and observation matrix, $X_\text{o}$, and the recovered model parameters, $
 Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix  with separated observable and predictable features.
 From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
 \begin{align}
-  W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}.
+  W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}
 \end{align}
-Since the weights must be nonnegative, a nonnegative least squares algorithm is used~\cite{Benthem04}.
-From here, we can estimate the underlying feature distributions for the flows:
+with the constraint that $W$ be nonnegative.
+We can estimate the underlying feature distributions for the flows:
 \begin{align}
   Q^* = W^*P.
 \end{align}
 The ``predictable'' portion, $Q^*_\text{p}$, contains predictions of packet size distribution, inter-packet interval distribution and distribution of packet counts for each flow.
 To evaluate the quality of these predictions, we compare the distributions in $Q^*_\text{p}$ to the matrix, $X_\text{p}$, of actual behaviors of flows.
 
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=3.3in]{pred_stats}
-\caption{Accuracy rates of various methods of predicting flow behavior from five initial packets across six data sets.}
-\fig{success-rates}
-\end{center}
-\vspace{-1em}
-\end{figure}
-
 \begin{table}
+\vspace{0.35em}
 \begin{center}
 \scriptsize
 \begin{tabular}{|c|c|c|c|}
@@ -242,8 +234,17 @@ UCSD engineering \\
 \caption{Traffic traces used for analysis and experiments.}
 \tab{traces}
 \end{center}
-\vspace{-2.5em}
+\vspace{-1em}
 \end{table}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=3.3in]{pred_stats}
+\caption{Accuracy rates of various methods of predicting flow behavior from five initial packets across six data sets.}
+\fig{accuracy}
+\end{center}
+\vspace{-2em}
+\end{figure}
 
 For our experiments, we use randomly sampled traffic from six network traces.
 The traces are freely available from the \caps{CRAWDAD} trace repository~\cite{Yeo06}.
@@ -252,9 +253,24 @@ Details of the traces are shown in \Table{traces}.
 % Unfortunately, we could not find any freely available residential or corporate network traces that were usable for our analysis.
 We randomly sampled 5000 flows from each trace for training and another 5000 flows for testing.
 % Since the initial five packets are used for prediction, we consider only flows with at least five packets.
+The results are shown in \Figure{accuracy}.
+The left panel shows the accuracy rates of predicting packet size and inter-packet interval distributions.
+Accuracy is computed by comparing the distribution of Kolmogorov-Smirnov (K-S) test p-values to an empirical ideal distribution of K-S p-values, taking the maximum deviation from the ideal as the error rate.
+Three prediction techniques are employed:
+prediction based on our hypothesis and model;
+predicting the already observed behavior of each flow;
+predicting the average behavior of the training trace.
+The right-top panel shows the accuracy rate for predicting which flow will have more packets between random pairs of flows.
+Choosing randomly gives 50\% accuracy, which we exceed significantly on all traces.
 
-\vfill
-\break
+While our prediction method does not yield perfect predictions, the non-deterministic nature of flow behavior implies that it is impossible to achieve perfect prediction.
+Moreover, we do not know what the inherent upper limit on prediction quality is.
+However, the mere fact that this technique can accurately predict flow behavior from so few initial packet observations is evidence that our hypothesized mixture model for flow behavior has merit.
+With improvements in the algorithms used to recover the model parameters, we are confident that even better prediction accuracy can be achieved.
+Furthermore, the same model can be applied to traffic classification based only on behavioral characteristics of flows, and even more importantly to the generation of realistic synthetic network traffic based on real-world behaviors.
+
+\scriptsize
+\bibliography{references}
 
 % \subsubsection{Subspace Segmentation}\sec{subspace-segmentation}
 % 
@@ -528,8 +544,5 @@ We randomly sampled 5000 flows from each trace for training and another 5000 flo
 % 
 % \vfill
 % \pagebreak
-
-\scriptsize
-\bibliography{references}
 
 \end{document}

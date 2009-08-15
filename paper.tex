@@ -16,8 +16,6 @@ University of California, Santa Barbara \vspace{0.75em}\\
 {\{sgk,gilbert,ebelding\}@cs.ucsb.edu}
 }
 
-\bibliographystyle{plain}
-
 \newcommand{\figurename}{Figure}
 \newcommand{\tablename}{Table}
 
@@ -62,11 +60,7 @@ Different aspects of flow behavior can be represented in this way, and these rep
 The features here are packet size and inter-packet interval distributions, \caps{IP} protocol type, source and destination port numbers, and packet count.
 The behavior of a feature across a collection of flows can be expressed as a matrix where each row represents a flow:
 \begin{align}\eqn{Size}
-  \text{Size} = \begin{bmatrix}
-    \text{size}_1 \\
-    \vdots \\
-    \text{size}_m
-  \end{bmatrix}.
+  \text{Size} = \bracket{ ~\text{size}_1~ ; ~\cdots~ ; ~\text{size}_m~ }.
 \end{align}
 The overall behavior of the collection of flows then becomes a concatenation of these feature matrices:
 \begin{align}\eqn{X}
@@ -150,7 +144,7 @@ Then we determine the hull points of each linear structure, using nonnegative ma
 if $Q_c$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_c$ and $P_c$, such that $Q_c \approx W_c P_c$.
 Our reconstructed $P^*$ is a vertical concatenation of these $P_c$ matrices, while $W^*$ is a row-permutation of the direct sum of $W_c$ matrices.
 We use Kim and Park's alternating non-negative least squares algorithm~\cite{Kim08:anls} for rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm~\cite{Lee01}.
-Good prediction performance requires special initialization of the \caps{NMF} algorithms, using techniques that we lack room to detail here.
+Good prediction performance requires special initialization of the \caps{NMF} algorithms, using new techniques that we lack room to detail here.
 
 To predict flow behavior, we separate flow features into those observed and those to be predicted:
 \begin{align}
@@ -267,9 +261,13 @@ While our prediction method does not yield perfect predictions, the non-determin
 Moreover, we do not know what the inherent upper limit on prediction quality is.
 However, the mere fact that this technique can accurately predict flow behavior from so few initial packet observations is evidence that our hypothesized mixture model for flow behavior has merit.
 With improvements in the algorithms used to recover the model parameters, we are confident that even better prediction accuracy can be achieved.
-Furthermore, the same model can be applied to traffic classification based only on behavioral characteristics of flows, and even more importantly to the generation of realistic synthetic network traffic based on real-world behaviors.
+Furthermore, the same model can be applied to traffic classification from flow behavior, and to generation of realistic synthetic network traffic based on real-world behaviors.
+These applications are merely pleasant side effects of the real breakthrough of this work:
+a detailed statistical model for network-wide flow behaviors.
 
+\vspace{-0.15em}
 \scriptsize
+\bibliographystyle{unsrt}
 \bibliography{references}
 
 % \subsubsection{Subspace Segmentation}\sec{subspace-segmentation}

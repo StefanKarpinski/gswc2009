@@ -163,7 +163,7 @@ To predict flow behavior, we separate flow features into those observed and thos
 $\text{Size}_\text{init}$ is the packet size matrix for the first five packets, while $\text{Size}_\text{rest}$ is the matrix for the remainder of the packets, and similarly for inter-packet intervals.
 From an observation matrix, $X_\text{o}$, and the recovered model parameters, $P^*$, we can make predictions about $X_\text{p}$.
 Let $P^* = \bracketx{P^*_\text{o}~P^*_\text{p}}$ be the recovered model parameter matrix  with separated observable and predictable features.
-From an observation matrix, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
+From an observation matrix for test data, $X_\text{o}$, we estimate the matrix of weights by minimizing the squared Frobenius error:
 \begin{align}
   W^* = \text{argmin}_W {\norm{X_\text{o} - W P^*_\text{o}}^2_\text{frob}}
 \end{align}

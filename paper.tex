@@ -105,7 +105,7 @@ To explain this linear structure, we hypothesize that the behavior distribution 
 Moreover, only even smaller subsets of these basic behaviors are typically combined with each other.
 Under these assumptions, we can express the distribution of each flow's behaviors as a finite mixture model~\cite{McLachlan00}:
 \begin{align}\eqn{mixture-model}
-  q_i(x) = \sum_{j=1}^r w_{ij} p_j(x),
+  q_i(x) = \sum_{j=1}^r w_{ij} p_j(x).
 \end{align}
 Here $q_i$ and $p_j$ are probability density functions, and $w_{ij}$ are nonnegative weights, summing to unity for each $i$.
 \Equation{mixture-model} is expressed succinctly as matrix multiplication.
@@ -158,7 +158,7 @@ To predict flow behavior, we separate flow features into those observed and thos
     \text{Size}_\text{rest} ~
     \text{Ival}_\text{rest} ~
     \text{Pkts} ~
-  }
+  }.
 \end{align}
 $\text{Size}_\text{init}$ is the packet size matrix for the first five packets, while $\text{Size}_\text{rest}$ is the matrix for the remainder of the packets, and similarly for inter-packet intervals.
 From an observation matrix, $X_\text{o}$, and the recovered model parameters, $P^*$, we can make predictions about $X_\text{p}$.

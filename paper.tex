@@ -257,13 +257,14 @@ predicting the average behavior of the training trace.
 The right-top panel shows the accuracy rate for predicting which flow will have more packets between random pairs of flows.
 Choosing randomly gives 50\% accuracy, which we exceed significantly on all traces.
 
-While our prediction method does not yield perfect predictions, the non-deterministic nature of flow behavior implies that it is impossible to achieve perfect prediction.
-Moreover, we do not know what the inherent upper limit on prediction quality is.
-However, the mere fact that this technique can accurately predict flow behavior from so few initial packet observations is evidence that our hypothesized mixture model for flow behavior has merit.
+Our method does not yield perfect predictions, but the non-deterministic nature of flow behavior implies that it is impossible to achieve perfect prediction.
+Moreover, we do not know what the inherent upper limit on prediction quality is:
+no prior work provides detailed statistical models of individual flow behaviors, nor does any earlier research attempt to predict individual flow behavior from a few initial packets.
+The fact that this technique can accurately predict flow behavior from so few initial packet observations is evidence that our hypothesized mixture model for flow behavior has merit.
 With improvements in the algorithms used to recover the model parameters, we are confident that even better prediction accuracy can be achieved.
-Furthermore, the same model can be applied to traffic classification from flow behavior, and to generation of realistic synthetic network traffic based on real-world behaviors.
-These applications are merely pleasant side effects of the real breakthrough of this work:
-a detailed statistical model for network-wide flow behaviors.
+Furthermore, the same model can be applied to traffic classification from flow behavior, and to generation of realistic synthetic network traffic from collections of trace data.
+These applications, however useful, are merely pleasant side effects of the real breakthrough of this work:
+a detailed statistical model for individual and network-wide flow behaviors.
 
 \renewcommand{\thesection}{\textsection}
 \vspace{-0.15em}

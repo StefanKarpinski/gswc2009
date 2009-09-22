@@ -701,17 +701,17 @@
 \vskip 2em                   % Vertical space above title.
    \begin{center}
     {\ttlfnt \@title\par}       % Title set in 18pt Helvetica (Arial) bold size.
-    \vskip 1.5em                % Vertical space after title.
+    \vskip 1.3em                % Vertical space after title.
 %This should be the subtitle.
 {\subttlfnt \the\subtitletext\par}\vskip 1.25em%\fi
     {\baselineskip 16pt\aufnt   % each author set in \12 pt Arial, in a
      \lineskip .5em             % tabular environment
      \begin{tabular}[t]{c}\@author
      \end{tabular}\par}
-    \vskip 1.5em               % Vertical space after author.
+    \vskip 1.3em               % Vertical space after author.
    \end{center}}
  \dimen0=\ht\@acmtitlebox
- \advance\dimen0 by -12.75pc\relax % Increased space for title box -- KBT
+ \advance\dimen0 by -11.75pc\relax % Increased space for title box -- KBT
  \unvbox\@acmtitlebox
  \ifdim\dimen0<0.0pt\relax\vskip-\dimen0\fi}
 
@@ -1076,8 +1076,8 @@
   \else
     \def\@svsechd{#4{\hskip #1\relax #5}}%
   \fi
-  \vskip -10.5pt  %gkmt, 7 jan 00 -- had been -14pt, now set to parskip
-  \@xsect{#3}\parskip=10.5pt} % within the starred section, parskip = leading 12 Jan 2000 gkmt
+  \vskip -6.0pt  %gkmt, 7 jan 00 -- had been -14pt, now set to parskip
+  \@xsect{#3}\parskip=6.0pt} % within the starred section, parskip = leading 12 Jan 2000 gkmt
 
 
 \def\@sect#1#2#3#4#5#6[#7]#8{%
@@ -1111,7 +1111,7 @@
             \endgroup
         \endgroup
         \csname #1mark\endcsname{#7}%
-        \vskip -10.5pt  % -14pt gkmt, 11 aug 99 -- changed to -\parskip 11 Jan 2000
+        \vskip -6.0pt  % -14pt gkmt, 11 aug 99 -- changed to -\parskip 11 Jan 2000
       \addcontentsline{toc}{#1}{%
             \ifnum #2>\c@secnumdepth \else
                 \protect\numberline{\csname the#1\endcsname}%
@@ -1137,7 +1137,7 @@
             }%
         }%
     \fi
-    \@xsect{#5}\parskip=10.5pt% within the section, parskip = leading 12 Jan 2000 gkmt
+    \@xsect{#5}\parskip=6.0pt% within the section, parskip = leading 12 Jan 2000 gkmt
 }
 \def\@xsect#1{%
     \@tempskipa #1\relax

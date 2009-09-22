@@ -127,7 +127,6 @@ Like any hypothesis, it must be tested.
 Our prediction technique, aside from providing a practical application, serves as a hypothesis test:
 we try to recover the matrices $W$ and $P$ from our noisy and imperfect observations of $Q$ and use the recovered model to predict real flow behaviors.
 If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis approximate reality.
-No previous work attempts to either model individual flow behavior or predict flow behavior from initial observations.
 
 % This prediction technique is clearly of immediate practical use:
 % applications range from network management to routing to quality of service.
@@ -252,9 +251,8 @@ We randomly sampled 5000 flows from each trace for training and another 5000 flo
 The results are shown in \Figure{accuracy}.
 The left panel shows the accuracy rates of predicting packet size and inter-packet interval distributions.
 Accuracy is computed by comparing the distribution of Kolmogorov-Smirnov (K-S) test p-values to an empirical ideal distribution of K-S p-values, taking the maximum deviation from the ideal as the error rate.
-Three prediction techniques are employed:
-prediction based on our hypothesis and model;
-predicting the already observed behavior of each flow;
+Since no previous work attempts to either model individual flow behavior or predict flow behavior from initial observations, we compare our prediction technique to two simple and obvious approaches:
+predicting the already observed behavior of each flow, and
 predicting the average behavior of the training trace.
 The right-top panel shows the accuracy rate for predicting which flow will have more packets between random pairs of flows.
 Choosing randomly gives 50\% accuracy, which we exceed significantly on all traces.

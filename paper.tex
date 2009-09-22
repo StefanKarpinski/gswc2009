@@ -140,7 +140,7 @@ If the recovered model can make accurate predictions, this provides evidence tha
 
 From training data we recover estimates, $W^*$ and $P^*$, of the factors in \Equation{mixture-model-matrix}.
 To detect the low-rank linear structures, we use Ma~\emph{et~al.}'s algorithm for segmenting multivariate data into subspaces using lossy data coding and compression~\cite{Ma07}.
-Then we determine the hull points of each linear structure, using nonnegative matrix factorization (\caps{NMF})~\cite{Lee01,Kim08:anls}:
+Then we determine the hull points of each linear structure using nonnegative matrix factorization (\caps{NMF})~\cite{Lee01,Kim08:anls}:
 if $Q_c$ is a sub-matrix of rows in the same structure class, we want to find nonnegative matrices, $W_c$ and $P_c$, such that $Q_c \approx W_c P_c$.
 Our reconstructed $P^*$ is a vertical concatenation of these $P_c$ matrices, while $W^*$ is a row-permutation of the direct sum of $W_c$ matrices.
 We use Kim and Park's alternating non-negative least squares algorithm~\cite{Kim08:anls} for rapid initial convergence, but refine the result using Lee and Seung's Euclidean algorithm~\cite{Lee01}.
@@ -263,7 +263,7 @@ The fact that this technique can accurately predict flow behavior from so few in
 With improvements in the algorithms used to recover the model parameters, we are confident that even better prediction accuracy can be achieved.
 Furthermore, the same model can be applied to traffic classification from flow behavior, and to generation of realistic synthetic network traffic from collections of trace data.
 These applications, however useful, are merely pleasant side effects of the real breakthrough of this work:
-a detailed statistical model for individual and network-wide flow behaviors.
+a detailed statistical model for individual flow behaviors across whole networks.
 
 \scriptsize
 \bibliographystyle{unsrt}

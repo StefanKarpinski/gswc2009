@@ -248,11 +248,11 @@ Details of the traces are shown in \Table{traces}.
 We randomly sampled 5000 flows from each trace for training and another 5000 flows for testing.
 % Since the initial five packets are used for prediction, we consider only flows with at least five packets.
 The results are shown in \Figure{accuracy}.
-The left panel shows the accuracy rates of predicting packet size and inter-packet interval distributions.
-Accuracy is computed by comparing the distribution of Kolmogorov-Smirnov (K-S) test p-values to an empirical ideal distribution of K-S p-values, taking the maximum deviation from the ideal as the error rate.
+The left panel shows accuracy rates for predicting packet size and inter-packet interval distributions.
 Since no previous work attempts to either model individual flow behavior or predict flow behavior from initial observations, we compare our prediction technique to two simple and obvious approaches:
 predicting the already observed behavior of each flow, and
 predicting the average behavior of the training trace.
+Accuracy is computed by comparing the distribution of Kolmogorov-Smirnov (K-S) test p-values to an empirical ideal distribution of K-S p-values, taking the maximum deviation from the ideal as the error rate.
 The right-top panel shows the accuracy rate for predicting which flow will have more packets between random pairs of flows.
 Choosing randomly gives 50\% accuracy, which we exceed significantly on all traces.
 

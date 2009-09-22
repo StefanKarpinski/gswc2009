@@ -34,6 +34,7 @@ They provide highly useful tools for network management, routing decisions, and 
 However, they also provide evidence that the hypothesized model gives a correct explanation for the observed linear structure in real network traffic.
 \end{abstract}
 
+\vspace{-0.5em}
 \section*{Extended Abstract}
 
 \newfootnote{\flownote}{We use the common definition of a \textit{flow} as a sequence of packets sharing the same  ``5-tuple'': IP protocol type, source and destination nodes, and TCP/UDP port numbers.}
@@ -126,6 +127,7 @@ Like any hypothesis, it must be tested.
 Our prediction technique, aside from providing a practical application, serves as a hypothesis test:
 we try to recover the matrices $W$ and $P$ from our noisy and imperfect observations of $Q$ and use the recovered model to predict real flow behaviors.
 If the recovered model can make accurate predictions, this provides evidence that our model and hypothesis approximate reality.
+No previous work attempts to either model individual flow behavior or predict flow behavior from initial observations.
 
 % This prediction technique is clearly of immediate practical use:
 % applications range from network management to routing to quality of service.
@@ -266,8 +268,7 @@ Furthermore, the same model can be applied to traffic classification from flow b
 These applications, however useful, are merely pleasant side effects of the real breakthrough of this work:
 a detailed statistical model for individual and network-wide flow behaviors.
 
-\renewcommand{\thesection}{\textsection}
-\vspace{-0.15em}
+\vspace{-0.5em}
 \scriptsize
 \bibliographystyle{unsrt}
 \bibliography{references}
